@@ -1,4 +1,20 @@
 package edu.hitsz.aircraft;
 
-public class BossEnemy {
+import edu.hitsz.bullet.BaseBullet;
+import java.util.LinkedList;
+import java.util.List;
+
+/**
+ * Boss敌机
+ */
+public class BossEnemy extends AbstractEnemyAircraft {
+
+    public BossEnemy(int locationX, int locationY, int speedX, int speedY, int hp) {
+        super(locationX, locationY, speedX, speedY, hp);
+    }
+
+    @Override
+    public List<BaseBullet> shoot() {
+        return new LinkedList<>();
+    }
 }

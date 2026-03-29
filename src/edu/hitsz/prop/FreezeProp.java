@@ -1,4 +1,11 @@
 package edu.hitsz.prop;
 
-public class FreezeProp {
+/**
+ * 冰冻道具：冻结全场敌机
+ */
+public class FreezeProp extends AbstractProp {
+
+    public FreezeProp(int locationX, int locationY, int speedX, int speedY) {
+        super(locationX, locationY, speedX, speedY);
+    }
 }
