@@ -1,0 +1,54 @@
+@startuml
+'https://plantuml.com/class-diagram
+left to right direction
+skinparam dpi 150
+skinparam defaultTextAlignment center
+skinparam wrapWidth 150
+
+package "道具工厂（PropFactory）" {
+    class PropFactory {
+        + createProp(propType, x, y, speedX, speedY): AbstractProp
+        + createRandomProp(x, y, speedX, speedY): AbstractProp
+    }
+
+    abstract class AbstractProp {
+        + activate(hero): void
+        + forward(): void
+    }
+
+    class BloodProp {
+        + activate(hero): void
+    }
+
+    class FireProp {
+        + activate(hero): void
+    }
+
+    class SuperFireProp {
+        + activate(hero): void
+    }
+
+    class FreezeProp {
+        + activate(hero): void
+    }
+
+    class BombProp {
+        + activate(hero): void
+    }
+
+    PropFactory --> AbstractProp : returns
+    PropFactory --> BloodProp : creates
+    PropFactory --> FireProp : creates
+    PropFactory --> SuperFireProp : creates
+    PropFactory --> FreezeProp : creates
+    PropFactory --> BombProp : creates
+    AbstractProp <|-- BloodProp
+    AbstractProp <|-- FireProp
+    AbstractProp <|-- SuperFireProp
+    AbstractProp <|-- FreezeProp
+    AbstractProp <|-- BombProp
+}
+
+title 飞机大战 - 简单工厂模式（道具创建）
+
+@enduml

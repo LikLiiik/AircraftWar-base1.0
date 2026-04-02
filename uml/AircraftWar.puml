@@ -1,0 +1,321 @@
+@startuml
+'https://plantuml.com/class-diagram
+left to right direction
+skinparam dpi 150
+skinparam defaultTextAlignment center
+skinparam wrapWidth 150
+
+package edu.hitsz.basic {
+    abstract class AbstractFlyingObject {
+        # locationX: int
+        # locationY: int
+        # speedX: int
+        # speedY: int
+        # image: BufferedImage
+        # width: int
+        # height: int
+        # isValid: boolean
+
+        + AbstractFlyingObject(int locationX, int locationY, int speedX, int speedY)
+        + forward(): void
+        + crash(AbstractFlyingObject flyingObject): boolean
+        + setLocation(double locationX, double locationY): void
+        + getLocationX(): int
+        + getLocationY(): int
+        + getSpeedY(): int
+        + getImage(): BufferedImage
+        + getWidth(): int
+        + getHeight(): int
+        + notValid(): boolean
+        + vanish(): void
+    }
+}
+
+package edu.hitsz.aircraft {
+    abstract class AbstractAircraft {
+        # maxHp: int
+        # hp: int
+
+        + AbstractAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
+        + decreaseHp(int decrease): void
+        + getHp(): int
+        + {abstract} shoot(): List<BaseBullet>
+    }
+
+    abstract class AbstractEnemyAircraft extends AbstractAircraft {
+        + AbstractEnemyAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
+        + forward(): void
+    }
+
+    class HeroAircraft {
+        - MAX_HP: int
+        - shootNum: int
+        - power: int
+        - direction: int
+        - {static} instance: HeroAircraft
+
+        + HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
+        + {static} getInstance(): HeroAircraft
+        + addHp(int add): void
+        + forward(): void
+        + shoot(): List<BaseBullet>
+    }
+
+    class MobEnemy {
+        + MobEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
+        + forward(): void
+        + shoot(): List<BaseBullet>
+    }
+
+    class EliteEnemy {
+        - shootNum: int
+        - power: int
+        - direction: int
+        - random: Random
+        - PROP_DROP_RATE: int
+        - PROP_SPEED_Y: int
+
+        + EliteEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
+        + shoot(): List<BaseBullet>
+        + createProp(): AbstractProp
+    }
+
+    class ElitePlusEnemy {
+        - random: Random
+        - PROP_DROP_RATE: int
+        - PROP_SPEED_Y: int
+
+        + ElitePlusEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
+        + forward(): void
+        + shoot(): List<BaseBullet>
+        + createProp(): AbstractProp
+    }
+
+    class AceEnemy {
+        - random: Random
+        - PROP_DROP_RATE: int
+        - PROP_SPEED_Y: int
+
+        + AceEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
+        + forward(): void
+        + shoot(): List<BaseBullet>
+        + createProp(): AbstractProp
+    }
+
+    class BossEnemy {
+        + BossEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
+        + forward(): void
+        + shoot(): List<BaseBullet>
+    }
+
+    AbstractAircraft <|-- HeroAircraft
+    AbstractAircraft <|-- AbstractEnemyAircraft
+    AbstractEnemyAircraft <|-- MobEnemy
+    AbstractEnemyAircraft <|-- EliteEnemy
+    AbstractEnemyAircraft <|-- ElitePlusEnemy
+    AbstractEnemyAircraft <|-- AceEnemy
+    AbstractEnemyAircraft <|-- BossEnemy
+}
+
+package edu.hitsz.bullet {
+    abstract class BaseBullet {
+        - power: int
+
+        + BaseBullet(int locationX, int locationY, int speedX, int speedY, int power)
+        + forward(): void
+        + getPower(): int
+    }
+
+    class HeroBullet {
+        + HeroBullet(int locationX, int locationY, int speedX, int speedY, int power)
+    }
+
+    class EnemyBullet {
+        + EnemyBullet(int locationX, int locationY, int speedX, int speedY, int power)
+    }
+
+    BaseBullet <|-- HeroBullet
+    BaseBullet <|-- EnemyBullet
+}
+
+package edu.hitsz.prop {
+    abstract class AbstractProp extends AbstractFlyingObject {
+        + AbstractProp(int locationX, int locationY, int speedX, int speedY)
+        + {abstract} activate(HeroAircraft hero): void
+        + forward(): void
+    }
+
+    class BloodProp {
+        + BloodProp(int locationX, int locationY, int speedX, int speedY)
+        + activate(HeroAircraft hero): void
+    }
+
+    class FireProp {
+        + FireProp(int locationX, int locationY, int speedX, int speedY)
+        + activate(HeroAircraft hero): void
+    }
+
+    class SuperFireProp {
+        + SuperFireProp(int locationX, int locationY, int speedX, int speedY)
+        + activate(HeroAircraft hero): void
+    }
+
+    class FreezeProp {
+        + FreezeProp(int locationX, int locationY, int speedX, int speedY)
+        + activate(HeroAircraft hero): void
+    }
+
+    class BombProp {
+        + BombProp(int locationX, int locationY, int speedX, int speedY)
+        + activate(HeroAircraft hero): void
+    }
+
+    AbstractProp <|-- BloodProp
+    AbstractProp <|-- FireProp
+    AbstractProp <|-- SuperFireProp
+    AbstractProp <|-- FreezeProp
+    AbstractProp <|-- BombProp
+}
+
+package edu.hitsz.factory {
+    interface EnemyFactory {
+        + createAircraft(...): AbstractEnemyAircraft
+    }
+
+    class PropFactory {
+        + createProp(propType, ...): AbstractProp
+        + createRandomProp(...): AbstractProp
+    }
+
+    class EnemyFactoryManager {
+        - TYPE_MOB: int
+        - TYPE_ELITE: int
+        - TYPE_ACE: int
+        - TYPE_BOSS: int
+        + getFactory(enemyType): EnemyFactory
+        + createEnemy(enemyType, ...): AbstractEnemyAircraft
+    }
+
+    class MobEnemyFactory implements EnemyFactory {
+        + createAircraft(...): AbstractEnemyAircraft
+    }
+
+    class EliteEnemyFactory implements EnemyFactory {
+        + createAircraft(...): AbstractEnemyAircraft
+    }
+
+    class AceEnemyFactory implements EnemyFactory {
+        + createAircraft(...): AbstractEnemyAircraft
+    }
+
+    class BossEnemyFactory implements EnemyFactory {
+        + createAircraft(...): AbstractEnemyAircraft
+    }
+
+    EnemyFactory <|-- MobEnemyFactory
+    EnemyFactory <|-- EliteEnemyFactory
+    EnemyFactory <|-- AceEnemyFactory
+    EnemyFactory <|-- BossEnemyFactory
+}
+
+package edu.hitsz.application {
+    class ImageManager {
+        - CLASSNAME_IMAGE_MAP: Map<String, BufferedImage>
+        + BACKGROUND_IMAGE: BufferedImage
+        + HERO_IMAGE: BufferedImage
+        + HERO_BULLET_IMAGE: BufferedImage
+        + ENEMY_BULLET_IMAGE: BufferedImage
+        + MOB_ENEMY_IMAGE: BufferedImage
+        + ELITE_ENEMY_IMAGE: BufferedImage
+        + ELITE_PLUS_ENEMY_IMAGE: BufferedImage
+        + ACE_ENEMY_IMAGE: BufferedImage
+        + BOSS_ENEMY_IMAGE: BufferedImage
+        + BLOOD_PROP_IMAGE: BufferedImage
+        + FIRE_PROP_IMAGE: BufferedImage
+        + SUPER_FIRE_PROP_IMAGE: BufferedImage
+        + FREEZE_PROP_IMAGE: BufferedImage
+        + BOMB_PROP_IMAGE: BufferedImage
+
+        + {static} get(String className): BufferedImage
+        + {static} get(Object obj): BufferedImage
+    }
+
+    class HeroController {
+        - game: Game
+        - heroAircraft: HeroAircraft
+        - mouseAdapter: MouseAdapter
+
+        + HeroController(Game game, HeroAircraft heroAircraft)
+    }
+
+    class Game {
+        - backGroundTop: int
+        - timer: Timer
+        - heroAircraft: HeroAircraft
+        - enemyAircrafts: List<AbstractAircraft>
+        - heroBullets: List<BaseBullet>
+        - enemyBullets: List<BaseBullet>
+        - props: List<AbstractProp>
+        - enemyMaxNumber: int
+        - enemySpawnCycle: double
+        - enemySpawnCounter: int
+        - shootCycle: double
+        - shootCounter: int
+        - score: int
+        - gameOverFlag: boolean
+
+        + Game()
+        + action(): void
+        + paint(Graphics g): void
+        + shootAction(): void
+        + bulletsMoveAction(): void
+        + aircraftsMoveAction(): void
+        + crashCheckAction(): void
+        + postProcessAction(): void
+        + checkResultAction(): void
+    }
+
+    class Main {
+        + WINDOW_WIDTH: int
+        + WINDOW_HEIGHT: int
+        + {static} main(String[] args): void
+    }
+
+    Game --> HeroAircraft : uses
+    Game --> AbstractAircraft : uses
+    Game --> BaseBullet : uses
+    Game --> HeroController : uses
+    Game --> ImageManager : uses
+    Game --> EnemyFactoryManager : uses
+    Game --> PropFactory : uses
+    Game --> AbstractProp : uses
+    HeroController --> HeroAircraft : controls
+    Game --> Main : references
+    ImageManager --> HeroAircraft : provides image
+    ImageManager --> MobEnemy : provides image
+    ImageManager --> HeroBullet : provides image
+    ImageManager --> EnemyBullet : provides image
+    ImageManager --> EliteEnemy : provides image
+    ImageManager --> ElitePlusEnemy : provides image
+    ImageManager --> AceEnemy : provides image
+    ImageManager --> BossEnemy : provides image
+    ImageManager --> BloodProp : provides image
+    ImageManager --> FireProp : provides image
+    ImageManager --> SuperFireProp : provides image
+    ImageManager --> FreezeProp : provides image
+    ImageManager --> BombProp : provides image
+    AbstractProp --> HeroAircraft : activates
+    EliteEnemy --> AbstractProp : creates
+    ElitePlusEnemy --> AbstractProp : creates
+    AceEnemy --> AbstractProp : creates
+    Game --> EnemyFactory : uses
+    PropFactory --> AbstractProp : creates
+    EnemyFactoryManager --> EnemyFactory : uses
+    EnemyFactoryManager --> AbstractEnemyAircraft : creates
+}
+
+AbstractFlyingObject <|-- AbstractAircraft
+AbstractFlyingObject <|-- BaseBullet
+AbstractFlyingObject <|-- AbstractProp
+
+@enduml
