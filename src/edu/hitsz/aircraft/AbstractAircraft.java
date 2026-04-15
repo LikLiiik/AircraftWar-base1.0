@@ -14,6 +14,12 @@ public abstract class AbstractAircraft extends AbstractFlyingObject {
     protected int maxHp;
     protected int hp;
 
+    //子弹威力
+    protected int power;
+
+    //子弹射击方向 (向上发射：-1，向下发射：1)
+    protected int direction;
+
     public AbstractAircraft(int locationX, int locationY, int speedX, int speedY, int hp) {
         super(locationX, locationY, speedX, speedY);
         this.hp = hp;
@@ -32,6 +38,13 @@ public abstract class AbstractAircraft extends AbstractFlyingObject {
         return hp;
     }
 
+    public int getPower() {
+        return power;
+    }
+
+    public int getDirection() {
+        return direction;
+    }
 
     /**
      * 飞机射击方法
@@ -42,5 +55,3 @@ public abstract class AbstractAircraft extends AbstractFlyingObject {
     public abstract List<BaseBullet> shoot();
 
 }
-
-

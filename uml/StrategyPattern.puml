@@ -1,0 +1,64 @@
+@startuml
+'https://plantuml.com/class-diagram
+left to right direction
+skinparam dpi 150
+skinparam defaultTextAlignment center
+skinparam wrapWidth 150
+
+package edu.hitsz.strategy {
+    interface ShootStrategy {
+        + shoot(aircraft): List<BaseBullet>
+    }
+
+    class SingleShotStrategy implements ShootStrategy {
+        + shoot(aircraft): List<BaseBullet>
+    }
+
+    class TripleSpreadStrategy implements ShootStrategy {
+        + shoot(aircraft): List<BaseBullet>
+    }
+
+    class RingShotStrategy implements ShootStrategy {
+        + shoot(aircraft): List<BaseBullet>
+    }
+
+    class EnemySingleRowStrategy implements ShootStrategy {
+        + shoot(aircraft): List<BaseBullet>
+    }
+
+    class EnemyDoubleRowStrategy implements ShootStrategy {
+        + shoot(aircraft): List<BaseBullet>
+    }
+
+    class EnemyFanShotStrategy implements ShootStrategy {
+        + shoot(aircraft): List<BaseBullet>
+    }
+
+    class BossRingShotStrategy implements ShootStrategy {
+        + shoot(aircraft): List<BaseBullet>
+    }
+
+    interface FirePowerUpStrategy {
+        + activate(hero): void
+    }
+
+    class FirePowerUpStrategyImpl implements FirePowerUpStrategy {
+        + activate(hero): void
+    }
+
+    class FirePlusPowerUpStrategyImpl implements FirePowerUpStrategy {
+        + activate(hero): void
+    }
+
+    ShootStrategy <|-- SingleShotStrategy
+    ShootStrategy <|-- TripleSpreadStrategy
+    ShootStrategy <|-- RingShotStrategy
+    ShootStrategy <|-- EnemySingleRowStrategy
+    ShootStrategy <|-- EnemyDoubleRowStrategy
+    ShootStrategy <|-- EnemyFanShotStrategy
+    ShootStrategy <|-- BossRingShotStrategy
+    FirePowerUpStrategy <|-- FirePowerUpStrategyImpl
+    FirePowerUpStrategy <|-- FirePlusPowerUpStrategyImpl
+}
+
+@enduml

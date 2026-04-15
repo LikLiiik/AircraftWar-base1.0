@@ -1,13 +1,13 @@
 package edu.hitsz.aircraft;
 
 import edu.hitsz.bullet.BaseBullet;
-import edu.hitsz.bullet.EnemyBullet;
 import edu.hitsz.prop.AbstractProp;
 import edu.hitsz.prop.BloodProp;
 import edu.hitsz.prop.FireProp;
 import edu.hitsz.prop.SuperFireProp;
+import edu.hitsz.strategy.ShootStrategy;
+import edu.hitsz.strategy.EnemySingleRowStrategy;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
@@ -18,14 +18,6 @@ import java.util.Random;
  */
 public class EliteEnemy extends AbstractEnemyAircraft {
 
-    // ===================== 射击配置参数 =====================
-    // 每次射击发射 1 发子弹（单排直射）
-    private int shootNum = 1;
-    // 子弹威力
-    private int power = 30;
-    // 子弹射击方向：敌机向下发射 = 1
-    private int direction = 1;
-
     // ===================== 道具掉落配置 =====================
     // 随机数工具
     private final Random random = new Random();
@@ -34,10 +26,16 @@ public class EliteEnemy extends AbstractEnemyAircraft {
     // 道具向下飞行速度
     private static final int PROP_SPEED_Y = 5;
 
+    // 射击策略
+    private ShootStrategy shootStrategy;
+
     // =======================================================
 
     public EliteEnemy(int locationX, int locationY, int speedX, int speedY, int hp) {
         super(locationX, locationY, speedX, speedY, hp);
+        this.power = 5;
+        this.direction = 1;
+        this.shootStrategy = new EnemySingleRowStrategy();
     }
 
     /**
@@ -45,15 +43,7 @@ public class EliteEnemy extends AbstractEnemyAircraft {
      */
     @Override
     public List<BaseBullet> shoot() {
-        List<BaseBullet> res = new LinkedList<>();
-        int x = this.getLocationX();
-        int y = this.getLocationY() + direction * 2;
-        int speedX = 0;
-        int speedY = this.getSpeedY() + direction * 5;
-
-        BaseBullet bullet = new EnemyBullet(x, y, speedX, speedY, power);
-        res.add(bullet);
-        return res;
+        return shootStrategy.shoot(this);
     }
 
     /**

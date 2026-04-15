@@ -81,10 +81,21 @@ public abstract class AbstractFlyingObject {
         int fWidth = flyingObject.getWidth();
         int fHeight = flyingObject.getHeight();
 
-        return x + (fWidth+this.getWidth())/2 > locationX
-                && x - (fWidth+this.getWidth())/2 < locationX
-                && y + ( fHeight/fFactor+this.getHeight()/factor )/2 > locationY
-                && y - ( fHeight/fFactor+this.getHeight()/factor )/2 < locationY;
+        // 我方碰撞区域
+        int thisLeft = locationX - getWidth() / 2;
+        int thisRight = locationX + getWidth() / 2;
+        int thisTop = locationY - getHeight() / factor;
+        int thisBottom = locationY + getHeight() / factor;
+
+        // 对方碰撞区域
+        int fLeft = x - fWidth / 2;
+        int fRight = x + fWidth / 2;
+        int fTop = y - fHeight / fFactor;
+        int fBottom = y + fHeight / fFactor;
+
+        // 检测碰撞区域是否有交叉
+        return fLeft < thisRight && fRight > thisLeft
+                && fTop < thisBottom && fBottom > thisTop;
     }
 
     public int getLocationX() {

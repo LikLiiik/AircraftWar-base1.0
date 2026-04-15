@@ -1,81 +1,210 @@
 @startuml
 'https://plantuml.com/class-diagram
+left to right direction
+skinparam dpi 150
+skinparam defaultTextAlignment center
+skinparam wrapWidth 150
 
-abstract class AbstractFlyingObject
-{
-    # locationX:int
-    # locationY:int
-    # speedX:int
-    # speedY:int
-    # image:BufferedImage
-    # width:int
-    # height:int
-    # isValid:boolean
+package edu.hitsz.basic {
+    abstract class AbstractFlyingObject {
+        # locationX: int
+        # locationY: int
+        # speedX: int
+        # speedY: int
+        # image: BufferedImage
+        # width: int
+        # height: int
+        # isValid: boolean
 
-    + AbstractFlyingObject(int locationX, int locationY, int speedX, int speedY)
-    + forward():void
-    + crash(AbstractFlyingObject flyingObject):boolean
-    + setLocation(double locationX, double locationY):void
-    + getLocationX():int
-    + getLocationY():int
-    + getSpeedY():int
-    + getImage():BufferedImage
-    + getWidth():int
-    + getHeight():int
-    + notValid():boolean
-    + vanish():void
-}
-abstract class AbstractAircraft
-{
-	# maxHp:int
-    # hp:int
-    + AbstractAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
-    + decreaseHp(int decrease):void
-    + getHp():int
-    + {abstract} shoot():List<BaseBullet>
- }
-
-
-class HeroAircraft {
-    - shootNum:int
-    - power:int
-    - direction:int
-    + HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
-    + forward():void
-    + shoot():List<BaseBullet>
+        + AbstractFlyingObject(int locationX, int locationY, int speedX, int speedY)
+        + forward(): void
+        + crash(flyingObject): boolean
+        + setLocation(locationX, locationY): void
+        + getLocationX(): int
+        + getLocationY(): int
+        + getSpeedY(): int
+        + getImage(): BufferedImage
+        + getWidth(): int
+        + getHeight(): int
+        + notValid(): boolean
+        + vanish(): void
+    }
 }
 
-AbstractAircraft <|-- HeroAircraft
+package edu.hitsz.aircraft {
+    abstract class AbstractAircraft extends AbstractFlyingObject {
+        # maxHp: int
+        # hp: int
+        # power: int
+        # direction: int
 
-class MobEnemy {
-    + MobEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
-    + forward():void
-    + shoot():List<BaseBullet>
+        + AbstractAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
+        + decreaseHp(decrease): void
+        + getHp(): int
+        + getPower(): int
+        + getDirection(): int
+        + {abstract} shoot(): List<BaseBullet>
+    }
+
+    abstract class AbstractEnemyAircraft extends AbstractAircraft {
+        + AbstractEnemyAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
+        + forward(): void
+    }
+
+    class HeroAircraft {
+        - MAX_HP: int
+        - shootStrategy: ShootStrategy
+        - {static} instance: HeroAircraft
+
+        + HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp): private
+        + {static} getInstance(): HeroAircraft
+        + addHp(add): void
+        + setShootStrategy(strategy): void
+        + resetShootStrategy(): void
+        + forward(): void
+        + shoot(): List<BaseBullet>
+    }
+
+    class MobEnemy {
+        + MobEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
+        + forward(): void
+        + shoot(): List<BaseBullet>
+    }
+
+    class EliteEnemy {
+        - power: int
+        - direction: int
+        - random: Random
+        - PROP_DROP_RATE: int
+        - PROP_SPEED_Y: int
+        - shootStrategy: ShootStrategy
+
+        + EliteEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
+        + shoot(): List<BaseBullet>
+        + createProp(): AbstractProp
+    }
+
+    class ElitePlusEnemy {
+        - moveSpeedX: int
+        - moveCounter: int
+        - MOVE_CYCLE: int
+        - power: int
+        - direction: int
+        - random: Random
+        - PROP_DROP_RATE: int
+        - PROP_SPEED_Y: int
+        - shootStrategy: ShootStrategy
+
+        + ElitePlusEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
+        + forward(): void
+        + shoot(): List<BaseBullet>
+        + createProp(): AbstractProp
+    }
+
+    class AceEnemy {
+        - moveSpeedX: int
+        - moveCounter: int
+        - MOVE_CYCLE: int
+        - power: int
+        - direction: int
+        - random: Random
+        - PROP_DROP_RATE: int
+        - PROP_SPEED_Y: int
+        - shootStrategy: ShootStrategy
+
+        + AceEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
+        + forward(): void
+        + shoot(): List<BaseBullet>
+        + createProp(): AbstractProp
+    }
+
+    class BossEnemy {
+        - moveSpeedX: int
+        - moveCounter: int
+        - MOVE_CYCLE: int
+        - power: int
+        - direction: int
+        - random: Random
+        - PROP_SPEED_Y: int
+        - shootStrategy: ShootStrategy
+
+        + BossEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
+        + forward(): void
+        + shoot(): List<BaseBullet>
+        + createProp(): List<AbstractProp>
+    }
+
+    AbstractAircraft <|-- AbstractEnemyAircraft
+    AbstractEnemyAircraft <|-- MobEnemy
+    AbstractEnemyAircraft <|-- EliteEnemy
+    AbstractEnemyAircraft <|-- ElitePlusEnemy
+    AbstractEnemyAircraft <|-- AceEnemy
+    AbstractEnemyAircraft <|-- BossEnemy
+    AbstractAircraft <|-- HeroAircraft
 }
-AbstractAircraft <|-- MobEnemy
 
-abstract class BaseBullet
-{
-    - power:int
-    + BaseBullet(int locationX, int locationY, int speedX, int speedY, int power)
-    + forward():void
-	+ getPower():int
+package edu.hitsz.bullet {
+    abstract class BaseBullet extends AbstractFlyingObject {
+        - power: int
+
+        + BaseBullet(int locationX, int locationY, int speedX, int speedY, int power)
+        + forward(): void
+        + getPower(): int
+    }
+
+    class HeroBullet {
+        + HeroBullet(int locationX, int locationY, int speedX, int speedY, int power)
+    }
+
+    class EnemyBullet {
+        + EnemyBullet(int locationX, int locationY, int speedX, int speedY, int power)
+    }
+
+    BaseBullet <|-- HeroBullet
+    BaseBullet <|-- EnemyBullet
 }
 
-class HeroBullet {
-    + HeroBullet(int locationX, int locationY,
-     int speedX, int speedY, int power)
-}
+package edu.hitsz.prop {
+    abstract class AbstractProp extends AbstractFlyingObject {
+        + AbstractProp(int locationX, int locationY, int speedX, int speedY)
+        + {abstract} activate(hero): void
+        + forward(): void
+    }
 
-class EnemyBullet {
-    + EnemyBullet(int locationX, int locationY,
-     int speedX, int speedY, int power)
-}
+    class BloodProp {
+        + BloodProp(int locationX, int locationY, int speedX, int speedY)
+        + activate(hero): void
+    }
 
-BaseBullet <|-- HeroBullet
-BaseBullet <|-- EnemyBullet
+    class FireProp {
+        + FireProp(int locationX, int locationY, int speedX, int speedY)
+        + activate(hero): void
+    }
+
+    class SuperFireProp {
+        + SuperFireProp(int locationX, int locationY, int speedX, int speedY)
+        + activate(hero): void
+    }
+
+    class FreezeProp {
+        + FreezeProp(int locationX, int locationY, int speedX, int speedY)
+        + activate(hero): void
+    }
+
+    class BombProp {
+        + BombProp(int locationX, int locationY, int speedX, int speedY)
+        + activate(hero): void
+    }
+
+    AbstractProp <|-- BloodProp
+    AbstractProp <|-- FireProp
+    AbstractProp <|-- SuperFireProp
+    AbstractProp <|-- FreezeProp
+    AbstractProp <|-- BombProp
+}
 
 AbstractFlyingObject <|-- AbstractAircraft
 AbstractFlyingObject <|-- BaseBullet
+AbstractFlyingObject <|-- AbstractProp
 
 @enduml

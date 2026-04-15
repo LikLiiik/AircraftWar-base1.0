@@ -50,6 +50,10 @@ public class Game extends JPanel {
     //游戏结束标志
     private boolean gameOverFlag = false;
 
+    // Boss 生成阈值
+    private static final int BOSS_SCORE_THRESHOLD = 500;
+    private int bossSpawnCounter = 0;
+
     public Game() {
         heroAircraft = HeroAircraft.getInstance();
 
@@ -75,6 +79,12 @@ public class Game extends JPanel {
             @Override
             public void run() {
 
+                // 检查是否达到 Boss 生成条件（每500分生成一次）
+                if (score >= (bossSpawnCounter + 1) * BOSS_SCORE_THRESHOLD) {
+                    spawnBoss();
+                    bossSpawnCounter++;
+                }
+                
                 enemySpawnCounter++;
                 if (enemySpawnCounter >=enemySpawnCycle) {
                     enemySpawnCounter = 0;
@@ -93,12 +103,12 @@ public class Game extends JPanel {
                     }
                 }
 
+                // 飞机移动
+                aircraftsMoveAction();
                 // 飞机发射子弹
                 shootAction();
                 // 子弹移动
                 bulletsMoveAction();
-                // 飞机移动
-                aircraftsMoveAction();
                 // 撞击检测
                 crashCheckAction();
                 // 后处理
@@ -112,6 +122,25 @@ public class Game extends JPanel {
         // 以固定延迟时间进行执行：本次任务执行完成后，延迟 timeInterval 再执行下一次
         timer.schedule(task,0,timeInterval);
 
+    }
+
+    /**
+     * 生成 Boss 敌机
+     */
+    private void spawnBoss() {
+        int bossHp = 200;
+        int bossX = Main.WINDOW_WIDTH / 2 - ImageManager.BOSS_ENEMY_IMAGE.getWidth() / 2;
+        int bossY = 50;
+        AbstractEnemyAircraft boss = EnemyFactoryManager.createEnemy(
+                4, // TYPE_BOSS
+                bossX,
+                bossY,
+                0,
+                0,
+                bossHp
+        );
+        enemyAircrafts.add(boss);
+        System.out.println("Boss spawned! Score: " + score);
     }
 
     //***********************
@@ -206,6 +235,10 @@ public class Game extends JPanel {
                             if (prop != null) {
                                 props.add(prop);
                             }
+                        } else if (enemyAircraft instanceof BossEnemy) {
+                            // Boss 敌机掉落 3 个道具
+                            List<AbstractProp> bossProps = ((BossEnemy) enemyAircraft).createProp();
+                            props.addAll(bossProps);
                         }
                         score += 10;
                     }
@@ -297,10 +330,8 @@ public class Game extends JPanel {
         int x = 10;
         int y = 25;
         g.setColor(Color.RED);
-        g.setFont(new Font("SansSerif", Font.BOLD, 22));
-        g.drawString("SCORE: " + this.score, x, y);
-        y = y + 20;
-        g.drawString("LIFE: " + this.heroAircraft.getHp(), x, y);
+        g.setFont(new Font("Arial", Font.BOLD, 16));
+        g.drawString("Score: " + score, x, y);
+        g.drawString("Life: " + heroAircraft.getHp(), x, y + 20);
     }
-
 }
