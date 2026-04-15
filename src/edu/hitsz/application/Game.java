@@ -3,6 +3,7 @@ package edu.hitsz.application;
 import edu.hitsz.aircraft.*;
 import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.basic.AbstractFlyingObject;
+import edu.hitsz.dao.Leaderboard;
 import edu.hitsz.factory.*;
 import edu.hitsz.prop.*;
 
@@ -50,6 +51,9 @@ public class Game extends JPanel {
     //游戏结束标志
     private boolean gameOverFlag = false;
 
+    // 排行榜
+    private Leaderboard leaderboard;
+
     // Boss 生成阈值
     private static final int BOSS_SCORE_THRESHOLD = 500;
     private int bossSpawnCounter = 0;
@@ -66,6 +70,9 @@ public class Game extends JPanel {
         new HeroController(this, heroAircraft);
 
         this.timer = new Timer("game-action-timer", true);
+        
+        // 初始化排行榜
+        this.leaderboard = new Leaderboard("normal");
 
     }
 
@@ -277,6 +284,12 @@ public class Game extends JPanel {
             timer.cancel(); // 取消定时器并终止所有调度任务
             gameOverFlag = true;
             System.out.println("Game Over!");
+            
+            // 记录得分并显示排行榜
+            if (leaderboard != null) {
+                leaderboard.addRecord(score);
+                leaderboard.printLeaderboard();
+            }
         }
     };
 
