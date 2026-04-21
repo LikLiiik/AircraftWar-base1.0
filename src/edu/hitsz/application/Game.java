@@ -7,9 +7,12 @@ import edu.hitsz.dao.Leaderboard;
 import edu.hitsz.factory.*;
 import edu.hitsz.prop.*;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.Timer;
@@ -23,9 +26,9 @@ public class Game extends JPanel {
 
     private int backGroundTop = 0;
 
-    //调度器, 用于定时任务调度
+    //调度器，用于定时任务调度
     private final Timer timer;
-    //时间间隔(ms)，控制刷新频率
+    //时间间隔 (ms)，控制刷新频率
     private final int timeInterval = 40;
 
     private final HeroAircraft heroAircraft;
@@ -53,13 +56,20 @@ public class Game extends JPanel {
 
     // 排行榜
     private Leaderboard leaderboard;
+    
+    // 当前难度
+    private String difficulty;
 
     // Boss 生成阈值
     private static final int BOSS_SCORE_THRESHOLD = 500;
     private int bossSpawnCounter = 0;
 
-    public Game() {
+    public Game(String difficulty) {
+        this.difficulty = difficulty;
         heroAircraft = HeroAircraft.getInstance();
+        
+        // 重置英雄机状态（HP、位置、射击策略）
+        heroAircraft.reset();
 
         enemyAircrafts = new LinkedList<>();
         heroBullets = new LinkedList<>();
@@ -72,14 +82,32 @@ public class Game extends JPanel {
         this.timer = new Timer("game-action-timer", true);
         
         // 初始化排行榜
-        this.leaderboard = new Leaderboard("normal");
+        this.leaderboard = new Leaderboard(difficulty);
+        
+        // 加载对应难度的背景图片
+        loadBackgroundImage(difficulty);
 
+    }
+    
+    /**
+     * 加载对应难度的背景图片
+     */
+    private void loadBackgroundImage(String difficulty) {
+        try {
+            String bgPath = DifficultySelection.getBackgroundImage(difficulty);
+            ImageManager.BACKGROUND_IMAGE = ImageIO.read(new FileInputStream(bgPath));
+        } catch (IOException e) {
+            System.err.println("背景图片加载失败：" + e.getMessage());
+        }
     }
 
     /**
      * 游戏启动入口，执行游戏逻辑
      */
     public void action() {
+        
+        // 播放背景音乐
+        SoundManager.getInstance().playBGM();
 
         // 定时任务：绘制、对象产生、碰撞判定、及结束判定
         TimerTask task = new TimerTask() {
@@ -148,6 +176,9 @@ public class Game extends JPanel {
         );
         enemyAircrafts.add(boss);
         System.out.println("Boss spawned! Score: " + score);
+        
+        // Boss 出场时播放专属背景音乐
+        SoundManager.getInstance().playBossBGM();
     }
 
     //***********************
@@ -199,6 +230,7 @@ public class Game extends JPanel {
             }
             if (heroAircraft.crash(bullet)) {
                 heroAircraft.decreaseHp(bullet.getPower());
+                SoundManager.getInstance().playBulletHit();
                 bullet.vanish();
             }
         }
@@ -229,6 +261,7 @@ public class Game extends JPanel {
                     // 敌机撞击到英雄机子弹
                     // 敌机损失一定生命值
                     enemyAircraft.decreaseHp(bullet.getPower());
+                    SoundManager.getInstance().playBulletHit();
                     bullet.vanish();
                     if (enemyAircraft.notValid()) {
                         // 敌机坠毁时生成道具
@@ -246,6 +279,9 @@ public class Game extends JPanel {
                             // Boss 敌机掉落 3 个道具
                             List<AbstractProp> bossProps = ((BossEnemy) enemyAircraft).createProp();
                             props.addAll(bossProps);
+                            
+                            // Boss 被击毁，停止 Boss BGM，恢复普通 BGM
+                            SoundManager.getInstance().playBGM();
                         }
                         score += 10;
                     }
@@ -254,6 +290,7 @@ public class Game extends JPanel {
                 if (enemyAircraft.crash(heroAircraft) || heroAircraft.crash(enemyAircraft)) {
                     enemyAircraft.vanish();
                     heroAircraft.decreaseHp(Integer.MAX_VALUE);
+                    SoundManager.getInstance().playBombExplosion();
                 }
             }
         }
@@ -285,11 +322,15 @@ public class Game extends JPanel {
             gameOverFlag = true;
             System.out.println("Game Over!");
             
-            // 记录得分并显示排行榜
-            if (leaderboard != null) {
-                leaderboard.addRecord(score);
-                leaderboard.printLeaderboard();
-            }
+            // 播放游戏结束音效
+            SoundManager.getInstance().playGameOver();
+            
+            // 显示排行榜界面（使用 CardLayout 切换到排行榜面板）
+            SwingUtilities.invokeLater(() -> {
+                LeaderboardUI leaderboardUI = new LeaderboardUI(score, difficulty);
+                Main.cardPanel.add(leaderboardUI.getMainPanel(), "leaderboard");
+                Main.cardLayout.show(Main.cardPanel, "leaderboard");
+            });
         }
     };
 

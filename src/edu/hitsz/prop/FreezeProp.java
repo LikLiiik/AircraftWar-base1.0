@@ -2,6 +2,7 @@ package edu.hitsz.prop;
 
 import edu.hitsz.aircraft.HeroAircraft;
 import edu.hitsz.application.ImageManager;
+import edu.hitsz.application.SoundManager;
 
 /**
  * 冰冻道具：冻结全场敌机
@@ -17,6 +18,7 @@ public class FreezeProp extends AbstractProp {
 
     @Override
     public void activate(HeroAircraft hero) {
+        SoundManager.getInstance().playGetSupply();
         System.out.println("FreezeProp active! 全场敌机被冻结");
     }
 }

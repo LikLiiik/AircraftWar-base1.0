@@ -60,6 +60,16 @@ public class HeroAircraft extends AbstractAircraft {
     public void resetShootStrategy() {
         this.shootStrategy = new SingleShotStrategy();
     }
+    
+    // 重置英雄机状态（用于新游戏）
+    public void reset() {
+        this.hp = MAX_HP;
+        this.setLocation(
+            Main.WINDOW_WIDTH/2,
+            Main.WINDOW_HEIGHT - ImageManager.HERO_IMAGE.getHeight()
+        );
+        this.shootStrategy = new SingleShotStrategy();
+    }
 
     @Override
     public void forward() {

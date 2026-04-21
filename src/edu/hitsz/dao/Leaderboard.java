@@ -47,6 +47,18 @@ public class Leaderboard {
     }
     
     /**
+     * 添加得分记录（指定玩家名和难度）
+     * @param score 得分
+     * @param playerName 玩家名
+     * @param difficulty 难度
+     */
+    public void addRecord(int score, String playerName, String difficulty) {
+        long timestamp = System.currentTimeMillis();
+        ScoreRecord record = new ScoreRecord(playerName, score, timestamp, difficulty);
+        scoreDAO.save(record);
+    }
+    
+    /**
      * 打印当前难度的排行榜
      */
     public void printLeaderboard() {
@@ -139,5 +151,17 @@ public class Leaderboard {
     
     public String getCurrentDifficulty() {
         return currentDifficulty;
+    }
+    
+    /**
+     * 获取前 N 条得分记录
+     * @param top 记录数量
+     * @return 前 N 条得分记录
+     */
+    public List<ScoreRecord> getTopRecords(int top) {
+        if (scoreDAO instanceof FileScoreDAO) {
+            return ((FileScoreDAO) scoreDAO).getTopRecordsByDifficulty(currentDifficulty, top);
+        }
+        return new java.util.ArrayList<>();
     }
 }

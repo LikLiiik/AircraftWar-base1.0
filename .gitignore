@@ -1,0 +1,15 @@
+# 排行榜数据文件
+/data/scores/
+
+# 编译输出
+/out/
+/target/
+/classes/
+
+# IDE 配置（除了 .idea/.gitignore）
+/.idea/
+*.iml
+
+# 其他忽略文件
+*.class
+*.log

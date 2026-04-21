@@ -2,6 +2,7 @@ package edu.hitsz.prop;
 
 import edu.hitsz.aircraft.HeroAircraft;
 import edu.hitsz.application.ImageManager;
+import edu.hitsz.application.SoundManager;
 
 /**
  * 炸弹道具：触发清屏效果
@@ -17,6 +18,7 @@ public class BombProp extends AbstractProp {
 
     @Override
     public void activate(HeroAircraft hero) {
+        SoundManager.getInstance().playBombExplosion();
         System.out.println("BombProp active! 清屏炸弹触发");
     }
 }

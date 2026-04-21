@@ -207,4 +207,156 @@ AbstractFlyingObject <|-- AbstractAircraft
 AbstractFlyingObject <|-- BaseBullet
 AbstractFlyingObject <|-- AbstractProp
 
+package edu.hitsz.application {
+    class MusicThread extends Thread {
+        - filename: String
+        - audioFormat: AudioFormat
+        - samples: byte[]
+        - loop: boolean
+        - shouldStop: boolean
+        
+        + MusicThread(filename: String)
+        + setLoop(loop: boolean): void
+        + stopMusic(): void
+        + reverseMusic(): void
+        + getSamples(stream: AudioInputStream): byte[]
+        + play(source: InputStream): void
+        + run(): void
+    }
+
+    class SoundManager {
+        - {static} instance: SoundManager
+        - currentMusicThread: MusicThread
+        - bossMusicThread: MusicThread
+        
+        - SoundManager(): private
+        + {static} getInstance(): SoundManager
+        + playBGM(): void
+        + playBossBGM(): void
+        + stopBGM(): void
+        + playSound(fileName): void
+        + playBulletHit(): void
+        + playBombExplosion(): void
+        + playGetSupply(): void
+        + playGameOver(): void
+    }
+
+    class DifficultySelection {
+        - mainPanel: JPanel
+        - easyButton: JButton
+        - normalButton: JButton
+        - hardButton: JButton
+        - difficultyListener: DifficultyListener
+        
+        + DifficultySelection()
+        + setDifficultyListener(listener): void
+        + getMainPanel(): JPanel
+        + {static} getBackgroundImage(difficulty): String
+        
+        <<interface>> DifficultyListener {
+            + onDifficultySelected(difficulty): void
+        }
+    }
+
+    class LeaderboardUI {
+        - mainPanel: JPanel
+        - leaderboardTable: JTable
+        - tableModel: DefaultTableModel
+        - leaderboard: Leaderboard
+        - currentScore: int
+        - difficulty: String
+        
+        + LeaderboardUI(score, difficulty)
+        + getMainPanel(): JPanel
+        - initUI(): void
+        - createStyledButton(text, color): JButton
+        - loadLeaderboard(): void
+        - saveScore(): void
+        - deleteSelectedRecord(): void
+        - getDifficultyName(difficulty): String
+    }
+
+    class Main {
+        + {static} WINDOW_WIDTH: int
+        + {static} WINDOW_HEIGHT: int
+        + {static} cardLayout: CardLayout
+        + {static} cardPanel: JPanel
+        
+        + {static} main(args): void
+    }
+
+    class Game {
+        - timer: Timer
+        - heroAircraft: HeroAircraft
+        - enemyAircrafts: List<AbstractAircraft>
+        - heroBullets: List<BaseBullet>
+        - enemyBullets: List<BaseBullet>
+        - props: List<AbstractProp>
+        - leaderboard: Leaderboard
+        - difficulty: String
+        
+        + Game(difficulty)
+        + action(): void
+        + paint(g): void
+    }
+
+    Main --> DifficultySelection : uses
+    Main --> Game : creates
+    Game --> SoundManager : uses
+    Game --> LeaderboardUI : creates
+    SoundManager --> MusicThread : uses
+    LeaderboardUI --> Leaderboard : uses
+}
+
+package edu.hitsz.dao {
+    interface ScoreDAO {
+        + {abstract} save(record): boolean
+        + {abstract} loadAll(): List<ScoreRecord>
+        + {abstract} getTopRecords(top): List<ScoreRecord>
+    }
+
+    class ScoreRecord {
+        - playerName: String
+        - score: int
+        - timestamp: long
+        - difficulty: String
+
+        + ScoreRecord(playerName, score, timestamp, difficulty)
+        + getPlayerName(): String
+        + getScore(): int
+        + getTimestamp(): long
+        + getDifficulty(): String
+    }
+
+    class FileScoreDAO implements ScoreDAO {
+        - FILE_PATH: String
+        - FILE_PREFIX: String
+        - FILE_SUFFIX: String
+
+        + FileScoreDAO()
+        + save(record): boolean
+        + loadAll(): List<ScoreRecord>
+        + getTopRecords(top): List<ScoreRecord>
+        + loadByDifficulty(difficulty): List<ScoreRecord>
+        + getTopRecordsByDifficulty(difficulty, top): List<ScoreRecord>
+    }
+
+    class Leaderboard {
+        - scoreDAO: ScoreDAO
+        - currentDifficulty: String
+
+        + Leaderboard(difficulty)
+        + addRecord(score): void
+        + addRecord(score, difficulty): void
+        + addRecord(score, playerName, difficulty): void
+        + printLeaderboard(): void
+        + getTopRecords(top): List<ScoreRecord>
+    }
+
+    ScoreDAO <|-- FileScoreDAO
+    Leaderboard --> ScoreDAO : uses
+    FileScoreDAO --> ScoreRecord : creates
+    Leaderboard --> ScoreRecord : uses
+}
+
 @enduml
