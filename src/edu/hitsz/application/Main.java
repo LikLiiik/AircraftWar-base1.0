@@ -58,8 +58,8 @@ public class Main {
                     }
                 }
                 
-                // 创建游戏实例并传入难度
-                Game game = new Game(difficulty);
+                // 根据难度创建对应的游戏实例
+                Game game = createGameByDifficulty(difficulty);
                 cardPanel.add(game, "game");
                 
                 // 切换到游戏界面
@@ -69,5 +69,17 @@ public class Main {
                 game.action();
             }
         });
+    }
+    
+    /**
+     * 根据难度创建对应的游戏实例（工厂方法）
+     */
+    private static Game createGameByDifficulty(String difficulty) {
+        return switch (difficulty) {
+            case "easy" -> new EasyGame();
+            case "normal" -> new NormalGame();
+            case "hard" -> new HardGame();
+            default -> new NormalGame(); // 默认普通难度
+        };
     }
 }

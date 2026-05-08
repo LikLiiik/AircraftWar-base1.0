@@ -1,5 +1,6 @@
 package edu.hitsz.aircraft;
 
+import edu.hitsz.application.Game;
 import edu.hitsz.application.Main;
 import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.application.ImageManager;
@@ -21,10 +22,13 @@ public class HeroAircraft extends AbstractAircraft {
     private ShootStrategy shootStrategy;
 
     private static volatile HeroAircraft instance;
+    
+    // 关联的 Game 实例
+    private Game game;
 
     private HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp) {
         super(locationX, locationY, speedX, speedY, hp);
-        this.power = 30;
+        this.power = 50;
         this.direction = -1;
         this.shootStrategy = new SingleShotStrategy();
     }
@@ -42,6 +46,20 @@ public class HeroAircraft extends AbstractAircraft {
             }
         }
         return instance;
+    }
+    
+    /**
+     * 设置关联的 Game 实例
+     */
+    public void setGame(Game game) {
+        this.game = game;
+    }
+    
+    /**
+     * 获取关联的 Game 实例
+     */
+    public Game getGame() {
+        return game;
     }
 
 

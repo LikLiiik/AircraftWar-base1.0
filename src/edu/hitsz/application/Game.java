@@ -5,6 +5,7 @@ import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.basic.AbstractFlyingObject;
 import edu.hitsz.dao.Leaderboard;
 import edu.hitsz.factory.*;
+import edu.hitsz.observer.Observer;
 import edu.hitsz.prop.*;
 
 import javax.imageio.ImageIO;
@@ -19,10 +20,10 @@ import java.util.Timer;
 import java.util.concurrent.*;
 
 /**
- * 游戏主面板，游戏启动
+ * 游戏主面板，游戏启动（模板模式基类 + 观察者模式被观察者）
  * @author hitsz
  */
-public class Game extends JPanel {
+public abstract class Game extends JPanel {
 
     private int backGroundTop = 0;
 
@@ -32,24 +33,29 @@ public class Game extends JPanel {
     private final int timeInterval = 40;
 
     private final HeroAircraft heroAircraft;
-    private final List<AbstractAircraft> enemyAircrafts;
+    protected final List<AbstractAircraft> enemyAircrafts;
     private final List<BaseBullet> heroBullets;
     private final List<BaseBullet> enemyBullets;
     private final List<AbstractProp> props;
 
+    // 难度配置
+    protected DifficultyConfig config;
+
     //屏幕中出现的敌机最大数量
-    private final int enemyMaxNumber = 5;
+    protected int enemyMaxNumber;
 
     //敌机生成周期
-    protected double enemySpawnCycle  =  20;
-    private int enemySpawnCounter = 0;
+    protected double enemySpawnCycle;
+    protected int enemySpawnCounter = 0;
 
     //英雄机和敌机射击周期
-    protected double shootCycle = 20;
-    private int shootCounter = 0;
+    protected double heroShootCycle;
+    protected double enemyShootCycle;
+    private int heroShootCounter = 0;
+    private int enemyShootCounter = 0;
 
     //当前玩家分数
-    private int score = 0;
+    protected int score = 0;
 
     //游戏结束标志
     private boolean gameOverFlag = false;
@@ -61,12 +67,25 @@ public class Game extends JPanel {
     private String difficulty;
 
     // Boss 生成阈值
-    private static final int BOSS_SCORE_THRESHOLD = 500;
-    private int bossSpawnCounter = 0;
+    protected int bossScoreThreshold;
+    protected int bossSpawnCounter = 0;
+    
+    // 观察者列表
+    private List<Observer> observers = new ArrayList<>();
+
+    // 游戏时间计数（用于难度递增）
+    protected int gameTimeCounter = 0;
+    // 上一次难度提升的时间点
+    protected int lastDifficultyIncreaseTime = 0;
+    // 难度提升间隔（帧数，约30秒 = 30*1000/40 = 750帧）
+    protected static final int DIFFICULTY_INCREASE_INTERVAL = 750;
 
     public Game(String difficulty) {
         this.difficulty = difficulty;
         heroAircraft = HeroAircraft.getInstance();
+        
+        // 设置 Game 引用
+        heroAircraft.setGame(this);
         
         // 重置英雄机状态（HP、位置、射击策略）
         heroAircraft.reset();
@@ -86,7 +105,60 @@ public class Game extends JPanel {
         
         // 加载对应难度的背景图片
         loadBackgroundImage(difficulty);
+        
+        // 注册敌机为观察者
+        registerEnemyObservers();
 
+    }
+    
+    /**
+     * 注册所有敌机为观察者
+     */
+    protected void registerEnemyObservers() {
+        // 在敌机生成时注册
+    }
+    
+    /**
+     * 注册单个敌机为观察者
+     */
+    protected void registerEnemyObserver(AbstractEnemyAircraft enemy) {
+        addObserver(enemy);
+    }
+    
+    /**
+     * 添加观察者
+     */
+    public void addObserver(Observer observer) {
+        observers.add(observer);
+    }
+    
+    /**
+     * 通知所有观察者
+     */
+    public void notifyObservers(String event, int duration) {
+        for (Observer observer : observers) {
+            observer.onNotify(event, duration);
+        }
+    }
+    
+    /**
+     * 触发炸弹效果（观察者模式）
+     */
+    public void triggerBombEffect() {
+        System.out.println("[Game] 炸弹效果触发 - 清屏");
+        // 通知所有敌机
+        notifyObservers("bomb", 0);
+        // 播放音效
+        SoundManager.getInstance().playBombExplosion();
+    }
+    
+    /**
+     * 触发冰冻效果（观察者模式）
+     */
+    public void triggerFreezeEffect(int duration) {
+        System.out.println("[Game] 冰冻效果触发 - 冻结 " + duration + "ms");
+        // 通知所有敌机
+        notifyObservers("freeze", duration);
     }
     
     /**
@@ -102,40 +174,42 @@ public class Game extends JPanel {
     }
 
     /**
-     * 游戏启动入口，执行游戏逻辑
+     * 游戏启动入口，执行游戏逻辑（模板方法）
      */
     public void action() {
         
         // 播放背景音乐
         SoundManager.getInstance().playBGM();
+        
+        // 加载难度配置
+        loadDifficulty();
+        
+        // 应用初始配置
+        applyDifficultyConfig();
 
         // 定时任务：绘制、对象产生、碰撞判定、及结束判定
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
+                
+                // 游戏时间递增
+                gameTimeCounter++;
+                
+                // 检查是否需要提升难度
+                if (config.difficultyIncreaseOverTime) {
+                    checkAndIncreaseDifficulty();
+                }
 
-                // 检查是否达到 Boss 生成条件（每500分生成一次）
-                if (score >= (bossSpawnCounter + 1) * BOSS_SCORE_THRESHOLD) {
+                // 检查是否达到 Boss 生成条件
+                if (canSpawnBoss() && score >= (bossSpawnCounter + 1) * bossScoreThreshold) {
                     spawnBoss();
                     bossSpawnCounter++;
                 }
                 
                 enemySpawnCounter++;
-                if (enemySpawnCounter >=enemySpawnCycle) {
+                if (enemySpawnCounter >= enemySpawnCycle) {
                     enemySpawnCounter = 0;
-                    // 产生随机类型的敌机（0: MobEnemy, 1: EliteEnemy, 2: ElitePlusEnemy, 3: AceEnemy）
-                    if (enemyAircrafts.size() < enemyMaxNumber) {
-                        int enemyType = (int) (Math.random() * 4);
-                        AbstractEnemyAircraft enemy = EnemyFactoryManager.createEnemy(
-                                enemyType,
-                                (int) (Math.random() * (Main.WINDOW_WIDTH - ImageManager.MOB_ENEMY_IMAGE.getWidth())),
-                                (int) (Math.random() * Main.WINDOW_HEIGHT * 0.05),
-                                0,
-                                10,
-                                30
-                        );
-                        enemyAircrafts.add(enemy);
-                    }
+                    spawnEnemy();
                 }
 
                 // 飞机移动
@@ -158,12 +232,67 @@ public class Game extends JPanel {
         timer.schedule(task,0,timeInterval);
 
     }
+    
+    /**
+     * 应用难度配置到游戏参数
+     */
+    protected void applyDifficultyConfig() {
+        this.enemyMaxNumber = config.enemyMaxNumber;
+        this.enemySpawnCycle = config.enemySpawnCycle;
+        this.heroShootCycle = config.heroShootCycle;
+        this.enemyShootCycle = config.enemyShootCycle;
+        this.bossScoreThreshold = config.bossScoreThreshold;
+    }
+    
+    /**
+     * 检查并提升游戏难度
+     */
+    protected void checkAndIncreaseDifficulty() {
+        if (gameTimeCounter - lastDifficultyIncreaseTime >= DIFFICULTY_INCREASE_INTERVAL) {
+            lastDifficultyIncreaseTime = gameTimeCounter;
+            increaseDifficulty();
+        }
+    }
+    
+    /**
+     * 提升游戏难度（由子类实现具体逻辑）
+     */
+    protected abstract void increaseDifficulty();
+    
+    //***********************
+    //      模板方法钩子
+    //***********************
+    
+    /**
+     * 加载难度配置（由子类实现）
+     */
+    protected abstract void loadDifficulty();
+    
+    /**
+     * 获取敌机生成周期（由子类实现）
+     */
+    protected abstract double getEnemySpawnCycle();
+    
+    /**
+     * 是否可以生成 Boss（由子类实现）
+     */
+    protected abstract boolean canSpawnBoss();
+    
+    /**
+     * 获取 Boss 血量（由子类实现）
+     */
+    protected abstract int getBossHp();
+    
+    /**
+     * 生成敌机（由子类实现差异化）
+     */
+    protected abstract void spawnEnemy();
 
     /**
      * 生成 Boss 敌机
      */
-    private void spawnBoss() {
-        int bossHp = 200;
+    protected void spawnBoss() {
+        int bossHp = getBossHp();
         int bossX = Main.WINDOW_WIDTH / 2 - ImageManager.BOSS_ENEMY_IMAGE.getWidth() / 2;
         int bossY = 50;
         AbstractEnemyAircraft boss = EnemyFactoryManager.createEnemy(
@@ -175,7 +304,9 @@ public class Game extends JPanel {
                 bossHp
         );
         enemyAircrafts.add(boss);
-        System.out.println("Boss spawned! Score: " + score);
+        // 注册 Boss 为观察者
+        addObserver(boss);
+        System.out.println("Boss spawned! Score: " + score + ", HP: " + bossHp);
         
         // Boss 出场时播放专属背景音乐
         SoundManager.getInstance().playBossBGM();
@@ -186,15 +317,27 @@ public class Game extends JPanel {
     //***********************
 
     private void shootAction() {
-        shootCounter++;
-        if (shootCounter >= shootCycle) {
-            shootCounter = 0;
-            //英雄机射击
+        // 英雄机射击
+        heroShootCounter++;
+        if (heroShootCounter >= heroShootCycle) {
+            heroShootCounter = 0;
             heroBullets.addAll(heroAircraft.shoot());
-            //敌机射击
+        }
+        
+        // 敌机射击
+        enemyShootCounter++;
+        if (enemyShootCounter >= enemyShootCycle) {
+            enemyShootCounter = 0;
             for (AbstractAircraft enemyAircraft : enemyAircrafts) {
                 if (enemyAircraft instanceof AbstractEnemyAircraft) {
-                    enemyBullets.addAll(enemyAircraft.shoot());
+                    List<BaseBullet> bullets = enemyAircraft.shoot();
+                    // 将敌机子弹注册为观察者，使其受炸弹和冰冻影响
+                    for (BaseBullet bullet : bullets) {
+                        if (bullet instanceof Observer) {
+                            addObserver((Observer) bullet);
+                        }
+                    }
+                    enemyBullets.addAll(bullets);
                 }
             }
         }
@@ -304,9 +447,17 @@ public class Game extends JPanel {
      * 1. 删除无效的子弹
      * 2. 删除无效的敌机
      * 3. 删除无效的道具
+     * 4. 清理已失效的观察者
      */
     private void postProcessAction() {
-        enemyBullets.removeIf(AbstractFlyingObject::notValid);
+        // 清理已失效子弹的观察者注册
+        enemyBullets.removeIf(bullet -> {
+            if (bullet.notValid() && bullet instanceof Observer) {
+                observers.remove((Observer) bullet);
+                return true;
+            }
+            return bullet.notValid();
+        });
         heroBullets.removeIf(AbstractFlyingObject::notValid);
         enemyAircrafts.removeIf(AbstractFlyingObject::notValid);
         props.removeIf(AbstractFlyingObject::notValid);

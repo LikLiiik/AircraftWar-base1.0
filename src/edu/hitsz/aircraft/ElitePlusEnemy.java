@@ -103,4 +103,13 @@ public class ElitePlusEnemy extends AbstractEnemyAircraft {
             default -> null;
         };
     }
+    
+    /**
+     * 精锐敌机对冰冻抗性：冰冻时间 3s
+     */
+    @Override
+    protected void onFreeze(int duration) {
+        this.frozen = true;
+        this.freezeEndTime = System.currentTimeMillis() + 3000; // 3秒
+    }
 }

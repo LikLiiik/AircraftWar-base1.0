@@ -10,6 +10,8 @@ import java.util.Random;
 
 /**
  * 王牌敌机
+ * 炸弹效果：掉血（不坠毁）
+ * 冰冻效果：减速 5s 后恢复
  */
 public class AceEnemy extends AbstractEnemyAircraft {
 
@@ -20,6 +22,11 @@ public class AceEnemy extends AbstractEnemyAircraft {
     private int moveCounter = 0;
     // 移动周期
     private static final int MOVE_CYCLE = 50;
+    
+    // 减速状态
+    private boolean slowed = false;
+    private long slowEndTime = 0;
+    private int originalSpeedX = 0;
 
     // ===================== 道具掉落配置 =====================
     // 随机数工具
@@ -40,10 +47,26 @@ public class AceEnemy extends AbstractEnemyAircraft {
         // 初始化时设置一个随机的横向移动方向
         int initialDirection = (Math.random() < 0.5) ? -1 : 1;
         this.speedX = initialDirection * moveSpeedX;
+        this.originalSpeedX = this.speedX;
     }
 
     @Override
     public void forward() {
+        // 如果被冰冻/减速，降低速度
+        if (frozen || slowed) {
+            if (System.currentTimeMillis() >= freezeEndTime) {
+                frozen = false;
+                slowed = false;
+                this.speedX = originalSpeedX;
+            } else {
+                // 减速移动
+                super.forward();
+                if (locationY >= Main.WINDOW_HEIGHT) {
+                    vanish();
+                }
+                return;
+            }
+        }
         super.forward();
         
         // 边界修正：防止超出屏幕
@@ -60,6 +83,7 @@ public class AceEnemy extends AbstractEnemyAircraft {
             // 随机决定横向移动方向：-1 左，1 右
             int newDirection = (Math.random() < 0.5) ? -1 : 1;
             this.speedX = newDirection * moveSpeedX;
+            this.originalSpeedX = this.speedX;
         }
         
         // 向下飞行出界判定
@@ -104,5 +128,27 @@ public class AceEnemy extends AbstractEnemyAircraft {
             case 4 -> new BombProp(x, y, 0, PROP_SPEED_Y);
             default -> null;
         };
+    }
+    
+    /**
+     * 王牌敌机：炸弹只掉血不坠毁
+     */
+    @Override
+    protected void onBombHit() {
+        this.hp = Math.max(0, this.hp - 50); // 扣50血
+        if (this.hp <= 0) {
+            vanish();
+        }
+    }
+    
+    /**
+     * 王牌敌机：冰冻后减速 5s
+     */
+    @Override
+    protected void onFreeze(int duration) {
+        this.frozen = true;
+        this.slowed = true;
+        this.freezeEndTime = System.currentTimeMillis() + 5000; // 5秒
+        this.speedX = this.speedX / 2; // 速度减半
     }
 }

@@ -1,0 +1,131 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor White
+    ArrowColor Black
+    BorderColor Black
+}
+
+title 观察者模式类图 - 炸弹/冰冻道具效果
+
+interface Observer {
+    + onNotify(String event, int duration): void
+}
+
+class Subject {
+    - observers: List<Observer>
+    + addObserver(Observer observer): void
+    + removeObserver(Observer observer): void
+    + notifyObservers(String event, int duration): void
+    + removeAllObservers(): void
+}
+
+class Game {
+    - observers: List<Observer>
+    + addObserver(Observer observer): void
+    + notifyObservers(String event, int duration): void
+    + triggerBombEffect(): void
+    + triggerFreezeEffect(int duration): void
+}
+
+abstract class AbstractEnemyAircraft {
+    # frozen: boolean
+    # freezeEndTime: long
+    + forward(): void
+    + onNotify(String event, int duration): void
+    # onBombHit(): void
+    # onFreeze(int duration): void
+}
+
+class MobEnemy {
+    + forward(): void
+    + shoot(): List<BaseBullet>
+    # onFreeze(int duration): void
+}
+
+class EliteEnemy {
+    + shoot(): List<BaseBullet>
+    + createProp(): AbstractProp
+    # onFreeze(int duration): void
+}
+
+class ElitePlusEnemy {
+    + forward(): void
+    + shoot(): List<BaseBullet>
+    + createProp(): AbstractProp
+    # onFreeze(int duration): void
+}
+
+class AceEnemy {
+    + forward(): void
+    + shoot(): List<BaseBullet>
+    + createProp(): AbstractProp
+    # onBombHit(): void
+    # onFreeze(int duration): void
+}
+
+class BossEnemy {
+    + forward(): void
+    + shoot(): List<BaseBullet>
+    + createProp(): List<AbstractProp>
+    # onBombHit(): void
+    # onFreeze(int duration): void
+}
+
+class EnemyBullet {
+    - frozen: boolean
+    - freezeEndTime: long
+    - originalSpeedX: int
+    - originalSpeedY: int
+    + forward(): void
+    + onNotify(String event, int duration): void
+    - onBombHit(): void
+    - onFreeze(int duration): void
+}
+
+class BombProp {
+    + activate(HeroAircraft hero): void
+}
+
+class FreezeProp {
+    - FREEZE_DURATION: int
+    + activate(HeroAircraft hero): void
+}
+
+' 继承关系
+Observer <|.. AbstractEnemyAircraft
+Observer <|.. EnemyBullet
+Subject <|-- Game
+
+AbstractEnemyAircraft <|-- MobEnemy
+AbstractEnemyAircraft <|-- EliteEnemy
+AbstractEnemyAircraft <|-- ElitePlusEnemy
+AbstractEnemyAircraft <|-- AceEnemy
+AbstractEnemyAircraft <|-- BossEnemy
+
+' 关联关系
+Game --> Observer : notifies >
+Game --> BombProp : triggers <
+Game --> FreezeProp : triggers <
+BombProp ..> Game : calls triggerBombEffect()
+FreezeProp ..> Game : calls triggerFreezeEffect()
+
+note right of Game
+    被观察者(Subject)
+    管理所有观察者列表
+    道具触发时通知所有观察者
+end note
+
+note bottom of AbstractEnemyAircraft
+    观察者(Observer)
+    不同敌机对炸弹/冰冻
+    有差异化响应
+end note
+
+note bottom of EnemyBullet
+    观察者(Observer)
+    炸弹: 子弹消失
+    冰冻: 静止5s后恢复
+end note
+
+@enduml

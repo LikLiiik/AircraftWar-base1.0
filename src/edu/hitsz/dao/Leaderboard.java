@@ -164,4 +164,13 @@ public class Leaderboard {
         }
         return new java.util.ArrayList<>();
     }
+
+    /**
+     * 删除得分记录
+     * @param record 要删除的记录
+     * @return 删除是否成功
+     */
+    public boolean deleteRecord(ScoreRecord record) {
+        return scoreDAO.delete(record);
+    }
 }

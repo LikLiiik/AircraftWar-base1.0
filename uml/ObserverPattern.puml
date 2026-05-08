@@ -1,0 +1,61 @@
+@startuml ObserverPattern
+title AircraftWar - 观察者模式 (Observer Pattern)
+
+skinparam dpi 150
+skinparam wrapWidth 150
+skinparam classAttributeIcon none
+left to right direction
+
+package edu.hitsz.observer {
+    interface Observer {
+        + onNotify(event: String, data: Object): void
+    }
+    
+    class Game {
+        - observers: List<Observer>
+        + addObserver(observer: Observer): void
+        + removeObserver(observer: Observer): void
+        + notifyObservers(event: String, data: Object): void
+    }
+    
+    class BombProp {
+        + activate(hero: HeroAircraft): void
+    }
+    
+    class FreezeProp {
+        + activate(hero: HeroAircraft): void
+    }
+    
+    class AbstractEnemyAircraft {
+        + onNotify(event: String, data: Object): void
+        - frozen: boolean
+        - freezeDuration: int
+    }
+    
+    class MobEnemy {
+    }
+    
+    class EliteEnemy {
+    }
+    
+    class ElitePlusEnemy {
+    }
+    
+    class AceEnemy {
+    }
+    
+    class BossEnemy {
+    }
+}
+
+Game --> Observer : manages
+Observer <|.. AbstractEnemyAircraft : implements
+AbstractEnemyAircraft <|-- MobEnemy
+AbstractEnemyAircraft <|-- EliteEnemy
+AbstractEnemyAircraft <|-- ElitePlusEnemy
+AbstractEnemyAircraft <|-- AceEnemy
+AbstractEnemyAircraft <|-- BossEnemy
+BombProp --> Game : triggers notify
+FreezeProp --> Game : triggers notify
+
+@enduml

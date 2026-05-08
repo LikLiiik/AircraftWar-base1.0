@@ -14,6 +14,8 @@ import java.util.Random;
 /**
  * 精英敌机
  * 功能：按周期向下直射单排子弹 + 坠毁概率掉落指定道具
+ * 炸弹效果：坠毁
+ * 冰冻效果：静止 4s 后恢复
  * @author hitsz
  */
 public class EliteEnemy extends AbstractEnemyAircraft {
@@ -70,5 +72,14 @@ public class EliteEnemy extends AbstractEnemyAircraft {
             case 2 -> new SuperFireProp(x, y, 0, PROP_SPEED_Y);
             default -> null;
         };
+    }
+    
+    /**
+     * 精英敌机：冰冻后静止 4s
+     */
+    @Override
+    protected void onFreeze(int duration) {
+        this.frozen = true;
+        this.freezeEndTime = System.currentTimeMillis() + 4000; // 4秒
     }
 }

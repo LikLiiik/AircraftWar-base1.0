@@ -140,4 +140,19 @@ public class FileScoreDAO implements ScoreDAO {
         int size = Math.min(top, records.size());
         return records.subList(0, size);
     }
+
+    @Override
+    public boolean delete(ScoreRecord record) {
+        String filePath = getFilePath(record.getDifficulty());
+        List<ScoreRecord> records = readFile(filePath);
+        boolean removed = records.removeIf(r -> 
+            r.getPlayerName().equals(record.getPlayerName()) &&
+            r.getScore() == record.getScore() &&
+            r.getTimestamp() == record.getTimestamp()
+        );
+        if (removed) {
+            return writeFile(filePath, records);
+        }
+        return false;
+    }
 }

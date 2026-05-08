@@ -27,4 +27,11 @@ public interface ScoreDAO {
      * @return 前 N 条得分记录
      */
     List<ScoreRecord> getTopRecords(int top);
+
+    /**
+     * 删除得分记录
+     * @param record 要删除的记录
+     * @return 删除是否成功
+     */
+    boolean delete(ScoreRecord record);
 }

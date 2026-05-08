@@ -27,37 +27,44 @@ public class DifficultySelection {
         mainPanel.setBackground(new Color(20, 20, 40));
         
         // 标题
-        titleLabel = new JLabel("AIRCRAFT WAR", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 48));
+        titleLabel = new JLabel("飞机大战", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 48));
         titleLabel.setForeground(new Color(0, 200, 255));
         titleLabel.setBounds(50, 100, 412, 60);
         mainPanel.add(titleLabel);
         
         // 副标题
-        JLabel subtitleLabel = new JLabel("Select Difficulty", SwingConstants.CENTER);
-        subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 24));
+        JLabel subtitleLabel = new JLabel("选择难度", SwingConstants.CENTER);
+        subtitleLabel.setFont(new Font("微软雅黑", Font.PLAIN, 24));
         subtitleLabel.setForeground(Color.WHITE);
         subtitleLabel.setBounds(50, 180, 412, 40);
         mainPanel.add(subtitleLabel);
         
         // 按钮样式
         Dimension buttonSize = new Dimension(250, 60);
-        Font buttonFont = new Font("Arial", Font.BOLD, 20);
+        Font buttonFont = new Font("微软雅黑", Font.BOLD, 20);
         
         // 简单难度按钮
-        easyButton = createStyledButton("EASY", new Color(0, 200, 100), buttonSize, buttonFont);
+        easyButton = createStyledButton("简单", new Color(0, 200, 100), buttonSize, buttonFont);
         easyButton.setBounds((512 - buttonSize.width) / 2, 280, buttonSize.width, buttonSize.height);
         mainPanel.add(easyButton);
         
         // 普通难度按钮
-        normalButton = createStyledButton("NORMAL", new Color(255, 200, 0), buttonSize, buttonFont);
+        normalButton = createStyledButton("普通", new Color(255, 200, 0), buttonSize, buttonFont);
         normalButton.setBounds((512 - buttonSize.width) / 2, 360, buttonSize.width, buttonSize.height);
         mainPanel.add(normalButton);
         
         // 困难难度按钮
-        hardButton = createStyledButton("HARD", new Color(255, 50, 50), buttonSize, buttonFont);
+        hardButton = createStyledButton("困难", new Color(255, 50, 50), buttonSize, buttonFont);
         hardButton.setBounds((512 - buttonSize.width) / 2, 440, buttonSize.width, buttonSize.height);
         mainPanel.add(hardButton);
+
+        // 排行榜按钮
+        Dimension lbButtonSize = new Dimension(250, 50);
+        Font lbButtonFont = new Font("微软雅黑", Font.BOLD, 18);
+        JButton leaderboardButton = createStyledButton("排行榜", new Color(100, 150, 255), lbButtonSize, lbButtonFont);
+        leaderboardButton.setBounds((512 - lbButtonSize.width) / 2, 530, lbButtonSize.width, lbButtonSize.height);
+        mainPanel.add(leaderboardButton);
         
         // 按钮监听器
         easyButton.addActionListener(new ActionListener() {
@@ -84,6 +91,14 @@ public class DifficultySelection {
                 if (difficultyListener != null) {
                     difficultyListener.onDifficultySelected("hard");
                 }
+            }
+        });
+
+        // 排行榜按钮监听器
+        leaderboardButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Main.cardLayout.show(Main.cardPanel, "leaderboard_selection");
             }
         });
     }

@@ -189,15 +189,41 @@ public class LeaderboardUI {
         );
         
         if (confirm == JOptionPane.YES_OPTION) {
-            // 从 DAO 中删除（简化处理：重新加载）
-            // TODO: 实现真正的删除功能
-            JOptionPane.showMessageDialog(
-                mainPanel,
-                "记录已删除！",
-                "成功",
-                JOptionPane.INFORMATION_MESSAGE
-            );
-            loadLeaderboard();
+            // 获取选中记录的数据
+            String playerName = (String) tableModel.getValueAt(selectedRow, 1);
+            int score = (Integer) tableModel.getValueAt(selectedRow, 2);
+            String timeStr = (String) tableModel.getValueAt(selectedRow, 3);
+            
+            // 查找对应的记录
+            List<ScoreRecord> records = leaderboard.getTopRecords(20);
+            ScoreRecord toDelete = null;
+            for (ScoreRecord record : records) {
+                String recordTimeStr = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                    .format(new java.util.Date(record.getTimestamp()));
+                if (record.getPlayerName().equals(playerName) 
+                    && record.getScore() == score 
+                    && recordTimeStr.equals(timeStr)) {
+                    toDelete = record;
+                    break;
+                }
+            }
+            
+            if (toDelete != null && leaderboard.deleteRecord(toDelete)) {
+                JOptionPane.showMessageDialog(
+                    mainPanel,
+                    "记录已删除！",
+                    "成功",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+                loadLeaderboard();
+            } else {
+                JOptionPane.showMessageDialog(
+                    mainPanel,
+                    "删除失败，请重试！",
+                    "错误",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
         }
     }
     

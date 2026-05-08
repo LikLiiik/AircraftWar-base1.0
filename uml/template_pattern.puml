@@ -1,0 +1,145 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor White
+    ArrowColor Black
+    BorderColor Black
+}
+
+title 模板模式类图 - 三种游戏难度
+
+abstract class Game {
+    # config: DifficultyConfig
+    # enemyMaxNumber: int
+    # enemySpawnCycle: double
+    # heroShootCycle: double
+    # enemyShootCycle: double
+    # bossScoreThreshold: int
+    # bossSpawnCounter: int
+    # gameTimeCounter: int
+    # lastDifficultyIncreaseTime: int
+    # DIFFICULTY_INCREASE_INTERVAL: int
+    --
+    + action(): void
+    + {abstract} loadDifficulty(): void
+    + {abstract} increaseDifficulty(): void
+    + {abstract} getEnemySpawnCycle(): double
+    + {abstract} canSpawnBoss(): boolean
+    + {abstract} getBossHp(): int
+    + {abstract} spawnEnemy(): void
+    # applyDifficultyConfig(): void
+    # checkAndIncreaseDifficulty(): void
+    # spawnBoss(): void
+    --
+    - shootAction(): void
+    - bulletsMoveAction(): void
+    - aircraftsMoveAction(): void
+    - crashCheckAction(): void
+    - postProcessAction(): void
+    - checkResultAction(): void
+}
+
+class EasyGame {
+    - currentHpMultiplier: double
+    - currentSpeedMultiplier: double
+    --
+    + loadDifficulty(): void
+    + increaseDifficulty(): void
+    + getEnemySpawnCycle(): double
+    + canSpawnBoss(): boolean
+    + getBossHp(): int
+    + spawnBoss(): void
+    + spawnEnemy(): void
+    - getEnemyTypeByWeight(): int
+}
+
+class NormalGame {
+    - currentHpMultiplier: double
+    - currentSpeedMultiplier: double
+    - currentSpawnCycleMultiplier: double
+    --
+    + loadDifficulty(): void
+    + increaseDifficulty(): void
+    + getEnemySpawnCycle(): double
+    + canSpawnBoss(): boolean
+    + getBossHp(): int
+    + spawnEnemy(): void
+    - getEnemyTypeByWeight(): int
+}
+
+class HardGame {
+    - currentHpMultiplier: double
+    - currentSpeedMultiplier: double
+    - currentSpawnCycleMultiplier: double
+    - currentHeroShootCycleMultiplier: double
+    - currentEnemyShootCycleMultiplier: double
+    --
+    + loadDifficulty(): void
+    + increaseDifficulty(): void
+    + getEnemySpawnCycle(): double
+    + canSpawnBoss(): boolean
+    + getBossHp(): int
+    + spawnEnemy(): void
+    - getEnemyTypeByWeight(): int
+}
+
+class DifficultyConfig {
+    + enemyMaxNumber: int
+    + enemySpawnWeights: double[]
+    + heroShootCycle: double
+    + enemyShootCycle: double
+    + enemySpawnCycle: double
+    + bossScoreThreshold: int
+    + enemyBaseSpeedY: int
+    + enemyBaseHp: int
+    + canSpawnBoss: boolean
+    + bossBaseHp: int
+    + bossHpIncrease: boolean
+    + bossHpIncrement: int
+    + difficultyIncreaseOverTime: boolean
+    + spawnCycleDecreaseRate: double
+    + speedIncreaseRate: double
+    + hpIncreaseRate: double
+    + heroShootCycleIncreaseRate: double
+    + enemyShootCycleDecreaseRate: double
+    --
+    + {static} getEasyConfig(): DifficultyConfig
+    + {static} getNormalConfig(): DifficultyConfig
+    + {static} getHardConfig(): DifficultyConfig
+    + {static} getConfig(String difficulty): DifficultyConfig
+}
+
+Game <|-- EasyGame
+Game <|-- NormalGame
+Game <|-- HardGame
+
+Game --> DifficultyConfig : uses >
+
+note right of Game
+    抽象类 - 定义模板方法 action()
+    包含游戏主循环的固定流程
+    子类通过实现钩子方法
+    提供差异化行为
+end note
+
+note right of EasyGame
+    简单难度
+    - 不生成Boss
+    - 难度不随时间变化
+    - 只生成Mob/Elite敌机
+end note
+
+note right of NormalGame
+    普通难度
+    - Boss血量固定
+    - 随时间提升: 周期/速度/血量
+end note
+
+note right of HardGame
+    困难难度
+    - Boss血量递增(+100)
+    - 随时间提升: 周期/速度/血量
+      + 英雄射击周期/敌机射击周期
+end note
+
+@enduml

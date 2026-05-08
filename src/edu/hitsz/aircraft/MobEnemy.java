@@ -9,6 +9,8 @@ import java.util.List;
 /**
  * 普通敌机
  * 不可射击、不掉落道具
+ * 炸弹效果：坠毁
+ * 冰冻效果：永久静止
  * @author hitsz
  */
 public class MobEnemy extends AbstractEnemyAircraft {
@@ -30,5 +32,14 @@ public class MobEnemy extends AbstractEnemyAircraft {
     public List<BaseBullet> shoot() {
         return new LinkedList<>();
     }
-
+    
+    /**
+     * 普通敌机：冰冻后永久静止
+     */
+    @Override
+    protected void onFreeze(int duration) {
+        this.frozen = true;
+        // 永久静止，不设置结束时间
+        this.freezeEndTime = Long.MAX_VALUE;
+    }
 }

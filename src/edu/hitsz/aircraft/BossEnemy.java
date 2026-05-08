@@ -117,4 +117,20 @@ public class BossEnemy extends AbstractEnemyAircraft {
             default -> null;
         };
     }
+    
+    /**
+     * Boss 对炸弹不受影响
+     */
+    @Override
+    protected void onBombHit() {
+        // Boss 不受炸弹影响
+    }
+    
+    /**
+     * Boss 对冰冻不受影响
+     */
+    @Override
+    protected void onFreeze(int duration) {
+        // Boss 不受冰冻影响
+    }
 }
