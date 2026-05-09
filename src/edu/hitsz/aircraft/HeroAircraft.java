@@ -89,6 +89,27 @@ public class HeroAircraft extends AbstractAircraft {
         this.shootStrategy = new SingleShotStrategy();
     }
 
+    /**
+     * 应用天赋效果
+     * @param lifeBoost 生命强化等级
+     * @param fireBoost 火力强化等级
+     * @param dualFire 双重火力等级
+     */
+    public void applyTalents(int lifeBoost, int fireBoost, int dualFire) {
+        // 生命强化：每级+5HP
+        int bonusHp = lifeBoost * 5;
+        this.hp = MAX_HP + bonusHp;
+        
+        // 火力强化：每级+5伤害
+        int bonusPower = fireBoost * 5;
+        this.power = 50 + bonusPower;
+        
+        // 双重火力：解锁双发子弹
+        if (dualFire > 0) {
+            this.shootStrategy = new edu.hitsz.strategy.DoubleShotStrategy();
+        }
+    }
+
     @Override
     public void forward() {
         // 英雄机由鼠标控制，不通过forward函数移动

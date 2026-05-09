@@ -65,6 +65,11 @@ public class DifficultySelection {
         JButton leaderboardButton = createStyledButton("排行榜", new Color(100, 150, 255), lbButtonSize, lbButtonFont);
         leaderboardButton.setBounds((512 - lbButtonSize.width) / 2, 530, lbButtonSize.width, lbButtonSize.height);
         mainPanel.add(leaderboardButton);
+
+        // 天赋系统按钮
+        JButton talentButton = createStyledButton("天赋系统", new Color(200, 100, 255), lbButtonSize, lbButtonFont);
+        talentButton.setBounds((512 - lbButtonSize.width) / 2, 600, lbButtonSize.width, lbButtonSize.height);
+        mainPanel.add(talentButton);
         
         // 按钮监听器
         easyButton.addActionListener(new ActionListener() {
@@ -99,6 +104,14 @@ public class DifficultySelection {
             @Override
             public void actionPerformed(ActionEvent e) {
                 Main.cardLayout.show(Main.cardPanel, "leaderboard_selection");
+            }
+        });
+
+        // 天赋系统按钮监听器
+        talentButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Main.cardLayout.show(Main.cardPanel, "talent");
             }
         });
     }

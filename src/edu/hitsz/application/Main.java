@@ -39,6 +39,10 @@ public class Main {
         // 创建排行榜选择界面
         LeaderboardSelection leaderboardSelection = new LeaderboardSelection();
         cardPanel.add(leaderboardSelection.getMainPanel(), "leaderboard_selection");
+
+        // 创建天赋系统界面
+        TalentUI talentUI = new TalentUI();
+        cardPanel.add(talentUI.getMainPanel(), "talent");
         
         frame.setVisible(true);
         
@@ -58,8 +62,22 @@ public class Main {
                     }
                 }
                 
+                // 请求输入玩家名称
+                String playerName = JOptionPane.showInputDialog(
+                    cardPanel,
+                    "请输入玩家名称：",
+                    "玩家登录",
+                    JOptionPane.QUESTION_MESSAGE
+                );
+                
+                if (playerName == null || playerName.trim().isEmpty()) {
+                    playerName = "游客";
+                }
+                String finalPlayerName = playerName.trim();
+                
                 // 根据难度创建对应的游戏实例
                 Game game = createGameByDifficulty(difficulty);
+                game.setCurrentPlayer(finalPlayerName);
                 cardPanel.add(game, "game");
                 
                 // 切换到游戏界面

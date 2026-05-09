@@ -25,7 +25,6 @@ public class LeaderboardUI {
     private String difficulty;
     
     // 按钮
-    private JButton saveButton;
     private JButton deleteButton;
     private JButton closeButton;
 
@@ -75,18 +74,15 @@ public class LeaderboardUI {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         buttonPanel.setBackground(new Color(30, 30, 50));
         
-        saveButton = createStyledButton("保存本局得分", new Color(0, 200, 100));
         deleteButton = createStyledButton("删除选中记录", new Color(255, 50, 50));
         closeButton = createStyledButton("关闭", new Color(150, 150, 150));
         
-        saveButton.addActionListener(e -> saveScore());
         deleteButton.addActionListener(e -> deleteSelectedRecord());
         closeButton.addActionListener(e -> {
             // 返回排行榜选择界面
             Main.cardLayout.show(Main.cardPanel, "leaderboard_selection");
         });
         
-        buttonPanel.add(saveButton);
         buttonPanel.add(deleteButton);
         buttonPanel.add(closeButton);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
@@ -140,29 +136,6 @@ public class LeaderboardUI {
                     timeStr
                 });
             }
-        }
-    }
-    
-    /**
-     * 保存本局得分
-     */
-    private void saveScore() {
-        String playerName = JOptionPane.showInputDialog(
-            mainPanel,
-            "请输入您的姓名：",
-            "保存得分",
-            JOptionPane.QUESTION_MESSAGE
-        );
-        
-        if (playerName != null && !playerName.trim().isEmpty()) {
-            leaderboard.addRecord(currentScore, playerName.trim(), difficulty);
-            JOptionPane.showMessageDialog(
-                mainPanel,
-                "得分已保存！",
-                "成功",
-                JOptionPane.INFORMATION_MESSAGE
-            );
-            loadLeaderboard();
         }
     }
     

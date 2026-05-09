@@ -80,6 +80,9 @@ public abstract class Game extends JPanel {
     // 难度提升间隔（帧数，约30秒 = 30*1000/40 = 750帧）
     protected static final int DIFFICULTY_INCREASE_INTERVAL = 750;
 
+    // 当前玩家名称（用于天赋系统）
+    protected String currentPlayerName = null;
+
     public Game(String difficulty) {
         this.difficulty = difficulty;
         heroAircraft = HeroAircraft.getInstance();
@@ -109,6 +112,55 @@ public abstract class Game extends JPanel {
         // 注册敌机为观察者
         registerEnemyObservers();
 
+    }
+
+    /**
+     * 设置当前玩家名称并应用天赋
+     */
+    public void setCurrentPlayer(String playerName) {
+        this.currentPlayerName = playerName;
+        applyPlayerTalents();
+    }
+
+    /**
+     * 应用玩家天赋效果
+     */
+    // 天赋效果值
+    protected int speedBoostLevel = 0;
+    protected int defenseBoostLevel = 0;
+    protected int luckBoostLevel = 0;
+    protected int rebirthLevel = 0;
+    protected boolean hasRebirthUsed = false;
+
+    protected void applyPlayerTalents() {
+        if (currentPlayerName == null) return;
+        
+        edu.hitsz.talent.PlayerTalent playerTalent = 
+            edu.hitsz.talent.TalentSystem.getInstance().loadPlayer(currentPlayerName);
+        
+        int lifeBoost = playerTalent.getTalentLevel("life_boost");
+        int fireBoost = playerTalent.getTalentLevel("fire_boost");
+        int dualFire = playerTalent.getTalentLevel("dual_fire");
+        speedBoostLevel = playerTalent.getTalentLevel("speed_boost");
+        defenseBoostLevel = playerTalent.getTalentLevel("defense_boost");
+        luckBoostLevel = playerTalent.getTalentLevel("luck_boost");
+        rebirthLevel = playerTalent.getTalentLevel("rebirth");
+        
+        heroAircraft.applyTalents(lifeBoost, fireBoost, dualFire);
+        
+        // 应用极速射击：每级减少1%射击周期
+        double speedReduction = speedBoostLevel * 0.01;
+        heroShootCycle = (int) Math.round(heroShootCycle * (1 - speedReduction));
+        if (heroShootCycle < 5) heroShootCycle = 5; // 最小射击周期
+        
+        System.out.println("[天赋] 玩家：" + currentPlayerName + 
+            " 生命+" + (lifeBoost * 5) + 
+            " 火力+" + (fireBoost * 5) + 
+            " 双发=" + (dualFire > 0) +
+            " 极速=" + speedBoostLevel + "%" +
+            " 防御=" + defenseBoostLevel + "%" +
+            " 幸运=" + luckBoostLevel + "%" +
+            " 复活=" + (rebirthLevel * 2) + "%");
     }
     
     /**
@@ -372,7 +424,11 @@ public abstract class Game extends JPanel {
                 continue;
             }
             if (heroAircraft.crash(bullet)) {
-                heroAircraft.decreaseHp(bullet.getPower());
+                // 钢铁之躯：每级减免1%伤害
+                double damageReduction = defenseBoostLevel * 0.01;
+                int damage = (int) Math.round(bullet.getPower() * (1 - damageReduction));
+                if (damage < 1) damage = 1; // 最少造成1点伤害
+                heroAircraft.decreaseHp(damage);
                 SoundManager.getInstance().playBulletHit();
                 bullet.vanish();
             }
@@ -412,11 +468,18 @@ public abstract class Game extends JPanel {
                             AbstractProp prop = ((ElitePlusEnemy) enemyAircraft).createProp();
                             if (prop != null) {
                                 props.add(prop);
+                            } else if (luckBoostLevel > 0 && Math.random() * 100 < luckBoostLevel) {
+                                // 幸运之星：未掉落时额外概率掉落
+                                prop = ((ElitePlusEnemy) enemyAircraft).createProp();
+                                if (prop != null) props.add(prop);
                             }
                         } else if (enemyAircraft instanceof AceEnemy) {
                             AbstractProp prop = ((AceEnemy) enemyAircraft).createProp();
                             if (prop != null) {
                                 props.add(prop);
+                            } else if (luckBoostLevel > 0 && Math.random() * 100 < luckBoostLevel) {
+                                prop = ((AceEnemy) enemyAircraft).createProp();
+                                if (prop != null) props.add(prop);
                             }
                         } else if (enemyAircraft instanceof BossEnemy) {
                             // Boss 敌机掉落 3 个道具
@@ -469,6 +532,23 @@ public abstract class Game extends JPanel {
     private void checkResultAction(){
         // 游戏结束检查英雄机是否存活
         if (heroAircraft.getHp() <= 0) {
+            // 不死鸟天赋：死亡时概率复活
+            if (!hasRebirthUsed && rebirthLevel > 0) {
+                int rebirthChance = rebirthLevel * 2; // 每级2%概率
+                if (Math.random() * 100 < rebirthChance) {
+                    heroAircraft.setHp(heroAircraft.getHp() + 50); // 复活恢复50HP
+                    hasRebirthUsed = true;
+                    System.out.println("[不死鸟] 天赋触发！复活成功！HP+50");
+                    JOptionPane.showMessageDialog(
+                        Main.cardPanel,
+                        "不死鸟天赋触发！复活成功！",
+                        "天赋效果",
+                        JOptionPane.INFORMATION_MESSAGE
+                    );
+                    return; // 不结束游戏
+                }
+            }
+            
             timer.cancel(); // 取消定时器并终止所有调度任务
             gameOverFlag = true;
             System.out.println("Game Over!");
@@ -476,8 +556,24 @@ public abstract class Game extends JPanel {
             // 播放游戏结束音效
             SoundManager.getInstance().playGameOver();
             
-            // 显示排行榜界面（使用 CardLayout 切换到排行榜面板）
+            // 保存分数（使用游戏开始时的玩家名）
             SwingUtilities.invokeLater(() -> {
+                String playerName = (currentPlayerName != null && !currentPlayerName.isEmpty()) 
+                    ? currentPlayerName : "游客";
+                
+                // 保存到排行榜
+                leaderboard.addRecord(score, playerName, difficulty);
+                // 保存到天赋系统（累计得分只增不减）
+                edu.hitsz.talent.TalentSystem.getInstance().addScore(playerName, score);
+                
+                JOptionPane.showMessageDialog(
+                    Main.cardPanel,
+                    "游戏结束！\n玩家：" + playerName + "\n得分：" + score + "\n\n得分已保存到排行榜和天赋系统！",
+                    "游戏结束",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+                
+                // 显示排行榜界面
                 LeaderboardUI leaderboardUI = new LeaderboardUI(score, difficulty);
                 Main.cardPanel.add(leaderboardUI.getMainPanel(), "leaderboard");
                 Main.cardLayout.show(Main.cardPanel, "leaderboard");
