@@ -23,6 +23,30 @@ public class TalentUI {
 
     public TalentUI() {
         initUI();
+        addVisibilityListener();
+    }
+
+    /**
+     * 添加面板可见性监听器，每次显示时刷新数据
+     */
+    private void addVisibilityListener() {
+        mainPanel.addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentShown(java.awt.event.ComponentEvent e) {
+                refreshCurrentPlayer();
+            }
+        });
+    }
+
+    /**
+     * 刷新当前玩家数据（从文件重新加载）
+     */
+    private void refreshCurrentPlayer() {
+        if (currentPlayer != null && currentPlayer.getPlayerName() != null) {
+            String playerName = currentPlayer.getPlayerName();
+            currentPlayer = TalentSystem.getInstance().loadPlayer(playerName);
+            updateUI();
+        }
     }
 
     private void initUI() {

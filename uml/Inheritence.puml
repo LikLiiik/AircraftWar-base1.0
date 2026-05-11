@@ -1,11 +1,24 @@
 @startuml
 'https://plantuml.com/class-diagram
 left to right direction
-skinparam dpi 150
+' 提高 dpi 让导出 PNG 像素更密集（即使在 Word 里缩放也清晰）
+skinparam dpi 180
 skinparam defaultTextAlignment center
-skinparam wrapWidth 150
+skinparam wrapWidth 220
+skinparam shadowing false
+skinparam nodesep 16
+skinparam ranksep 42
+skinparam packagePadding 6
+skinparam classFontSize 13
+skinparam classAttributeFontSize 12
+skinparam packageFontSize 14
+skinparam ArrowFontSize 12
+skinparam ArrowThickness 1.2
+' 不再用 scale max height 强制压缩高度（会导致字体变小变糊）；
+' 只对极端宽度做上限，保持原始分辨率以获得清晰文字。
+scale max 6000 width
 
-package edu.hitsz.basic {
+package "edu.hitsz.basic" as pkg_basic {
     abstract class AbstractFlyingObject {
         # locationX: int
         # locationY: int
@@ -31,7 +44,71 @@ package edu.hitsz.basic {
     }
 }
 
-package edu.hitsz.aircraft {
+package "edu.hitsz.bullet" as pkg_bullet {
+    abstract class BaseBullet extends AbstractFlyingObject {
+        - power: int
+
+        + BaseBullet(int locationX, int locationY, int speedX, int speedY, int power)
+        + forward(): void
+        + getPower(): int
+    }
+
+    together {
+        class HeroBullet {
+            + HeroBullet(int locationX, int locationY, int speedX, int speedY, int power)
+        }
+
+        class EnemyBullet {
+            + EnemyBullet(int locationX, int locationY, int speedX, int speedY, int power)
+        }
+    }
+
+    BaseBullet <|-- HeroBullet
+    BaseBullet <|-- EnemyBullet
+}
+
+package "edu.hitsz.prop" as pkg_prop {
+    abstract class AbstractProp extends AbstractFlyingObject {
+        + AbstractProp(int locationX, int locationY, int speedX, int speedY)
+        + {abstract} activate(hero): void
+        + forward(): void
+    }
+
+    together {
+        class BloodProp {
+            + BloodProp(int locationX, int locationY, int speedX, int speedY)
+            + activate(hero): void
+        }
+
+        class FireProp {
+            + FireProp(int locationX, int locationY, int speedX, int speedY)
+            + activate(hero): void
+        }
+
+        class SuperFireProp {
+            + SuperFireProp(int locationX, int locationY, int speedX, int speedY)
+            + activate(hero): void
+        }
+
+        class FreezeProp {
+            + FreezeProp(int locationX, int locationY, int speedX, int speedY)
+            + activate(hero): void
+        }
+
+        class BombProp {
+            + BombProp(int locationX, int locationY, int speedX, int speedY)
+            + activate(hero): void
+        }
+    }
+
+    AbstractProp <|-- BloodProp
+    AbstractProp <|-- FireProp
+    AbstractProp <|-- SuperFireProp
+    AbstractProp <|-- FreezeProp
+    AbstractProp <|-- BombProp
+}
+
+package "edu.hitsz.aircraft" as pkg_aircraft {
     abstract class AbstractAircraft extends AbstractFlyingObject {
         # maxHp: int
         # hp: int
@@ -65,73 +142,75 @@ package edu.hitsz.aircraft {
         + shoot(): List<BaseBullet>
     }
 
-    class MobEnemy {
-        + MobEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
-        + forward(): void
-        + shoot(): List<BaseBullet>
-    }
+    together {
+        class MobEnemy {
+            + MobEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
+            + forward(): void
+            + shoot(): List<BaseBullet>
+        }
 
-    class EliteEnemy {
-        - power: int
-        - direction: int
-        - random: Random
-        - PROP_DROP_RATE: int
-        - PROP_SPEED_Y: int
-        - shootStrategy: ShootStrategy
+        class EliteEnemy {
+            - power: int
+            - direction: int
+            - random: Random
+            - PROP_DROP_RATE: int
+            - PROP_SPEED_Y: int
+            - shootStrategy: ShootStrategy
 
-        + EliteEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
-        + shoot(): List<BaseBullet>
-        + createProp(): AbstractProp
-    }
+            + EliteEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
+            + shoot(): List<BaseBullet>
+            + createProp(): AbstractProp
+        }
 
-    class ElitePlusEnemy {
-        - moveSpeedX: int
-        - moveCounter: int
-        - MOVE_CYCLE: int
-        - power: int
-        - direction: int
-        - random: Random
-        - PROP_DROP_RATE: int
-        - PROP_SPEED_Y: int
-        - shootStrategy: ShootStrategy
+        class ElitePlusEnemy {
+            - moveSpeedX: int
+            - moveCounter: int
+            - MOVE_CYCLE: int
+            - power: int
+            - direction: int
+            - random: Random
+            - PROP_DROP_RATE: int
+            - PROP_SPEED_Y: int
+            - shootStrategy: ShootStrategy
 
-        + ElitePlusEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
-        + forward(): void
-        + shoot(): List<BaseBullet>
-        + createProp(): AbstractProp
-    }
+            + ElitePlusEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
+            + forward(): void
+            + shoot(): List<BaseBullet>
+            + createProp(): AbstractProp
+        }
 
-    class AceEnemy {
-        - moveSpeedX: int
-        - moveCounter: int
-        - MOVE_CYCLE: int
-        - power: int
-        - direction: int
-        - random: Random
-        - PROP_DROP_RATE: int
-        - PROP_SPEED_Y: int
-        - shootStrategy: ShootStrategy
+        class AceEnemy {
+            - moveSpeedX: int
+            - moveCounter: int
+            - MOVE_CYCLE: int
+            - power: int
+            - direction: int
+            - random: Random
+            - PROP_DROP_RATE: int
+            - PROP_SPEED_Y: int
+            - shootStrategy: ShootStrategy
 
-        + AceEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
-        + forward(): void
-        + shoot(): List<BaseBullet>
-        + createProp(): AbstractProp
-    }
+            + AceEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
+            + forward(): void
+            + shoot(): List<BaseBullet>
+            + createProp(): AbstractProp
+        }
 
-    class BossEnemy {
-        - moveSpeedX: int
-        - moveCounter: int
-        - MOVE_CYCLE: int
-        - power: int
-        - direction: int
-        - random: Random
-        - PROP_SPEED_Y: int
-        - shootStrategy: ShootStrategy
+        class BossEnemy {
+            - moveSpeedX: int
+            - moveCounter: int
+            - MOVE_CYCLE: int
+            - power: int
+            - direction: int
+            - random: Random
+            - PROP_SPEED_Y: int
+            - shootStrategy: ShootStrategy
 
-        + BossEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
-        + forward(): void
-        + shoot(): List<BaseBullet>
-        + createProp(): List<AbstractProp>
+            + BossEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
+            + forward(): void
+            + shoot(): List<BaseBullet>
+            + createProp(): List<AbstractProp>
+        }
     }
 
     AbstractAircraft <|-- AbstractEnemyAircraft
@@ -143,172 +222,13 @@ package edu.hitsz.aircraft {
     AbstractAircraft <|-- HeroAircraft
 }
 
-package edu.hitsz.bullet {
-    abstract class BaseBullet extends AbstractFlyingObject {
-        - power: int
-
-        + BaseBullet(int locationX, int locationY, int speedX, int speedY, int power)
-        + forward(): void
-        + getPower(): int
+package "edu.hitsz.observer" as pkg_observer {
+    interface Observer {
+        + onNotify(event, duration): void
     }
-
-    class HeroBullet {
-        + HeroBullet(int locationX, int locationY, int speedX, int speedY, int power)
-    }
-
-    class EnemyBullet {
-        + EnemyBullet(int locationX, int locationY, int speedX, int speedY, int power)
-    }
-
-    BaseBullet <|-- HeroBullet
-    BaseBullet <|-- EnemyBullet
 }
 
-package edu.hitsz.prop {
-    abstract class AbstractProp extends AbstractFlyingObject {
-        + AbstractProp(int locationX, int locationY, int speedX, int speedY)
-        + {abstract} activate(hero): void
-        + forward(): void
-    }
-
-    class BloodProp {
-        + BloodProp(int locationX, int locationY, int speedX, int speedY)
-        + activate(hero): void
-    }
-
-    class FireProp {
-        + FireProp(int locationX, int locationY, int speedX, int speedY)
-        + activate(hero): void
-    }
-
-    class SuperFireProp {
-        + SuperFireProp(int locationX, int locationY, int speedX, int speedY)
-        + activate(hero): void
-    }
-
-    class FreezeProp {
-        + FreezeProp(int locationX, int locationY, int speedX, int speedY)
-        + activate(hero): void
-    }
-
-    class BombProp {
-        + BombProp(int locationX, int locationY, int speedX, int speedY)
-        + activate(hero): void
-    }
-
-    AbstractProp <|-- BloodProp
-    AbstractProp <|-- FireProp
-    AbstractProp <|-- SuperFireProp
-    AbstractProp <|-- FreezeProp
-    AbstractProp <|-- BombProp
-}
-
-AbstractFlyingObject <|-- AbstractAircraft
-AbstractFlyingObject <|-- BaseBullet
-AbstractFlyingObject <|-- AbstractProp
-
-package edu.hitsz.application {
-    class MusicThread extends Thread {
-        - filename: String
-        - audioFormat: AudioFormat
-        - samples: byte[]
-        - loop: boolean
-        - shouldStop: boolean
-        
-        + MusicThread(filename: String)
-        + setLoop(loop: boolean): void
-        + stopMusic(): void
-        + reverseMusic(): void
-        + getSamples(stream: AudioInputStream): byte[]
-        + play(source: InputStream): void
-        + run(): void
-    }
-
-    class SoundManager {
-        - {static} instance: SoundManager
-        - currentMusicThread: MusicThread
-        - bossMusicThread: MusicThread
-        
-        - SoundManager(): private
-        + {static} getInstance(): SoundManager
-        + playBGM(): void
-        + playBossBGM(): void
-        + stopBGM(): void
-        + playSound(fileName): void
-        + playBulletHit(): void
-        + playBombExplosion(): void
-        + playGetSupply(): void
-        + playGameOver(): void
-    }
-
-    class DifficultySelection {
-        - mainPanel: JPanel
-        - easyButton: JButton
-        - normalButton: JButton
-        - hardButton: JButton
-        - difficultyListener: DifficultyListener
-        
-        + DifficultySelection()
-        + setDifficultyListener(listener): void
-        + getMainPanel(): JPanel
-        + {static} getBackgroundImage(difficulty): String
-        
-        <<interface>> DifficultyListener {
-            + onDifficultySelected(difficulty): void
-        }
-    }
-
-    class LeaderboardUI {
-        - mainPanel: JPanel
-        - leaderboardTable: JTable
-        - tableModel: DefaultTableModel
-        - leaderboard: Leaderboard
-        - currentScore: int
-        - difficulty: String
-        
-        + LeaderboardUI(score, difficulty)
-        + getMainPanel(): JPanel
-        - initUI(): void
-        - createStyledButton(text, color): JButton
-        - loadLeaderboard(): void
-        - saveScore(): void
-        - deleteSelectedRecord(): void
-        - getDifficultyName(difficulty): String
-    }
-
-    class Main {
-        + {static} WINDOW_WIDTH: int
-        + {static} WINDOW_HEIGHT: int
-        + {static} cardLayout: CardLayout
-        + {static} cardPanel: JPanel
-        
-        + {static} main(args): void
-    }
-
-    class Game {
-        - timer: Timer
-        - heroAircraft: HeroAircraft
-        - enemyAircrafts: List<AbstractAircraft>
-        - heroBullets: List<BaseBullet>
-        - enemyBullets: List<BaseBullet>
-        - props: List<AbstractProp>
-        - leaderboard: Leaderboard
-        - difficulty: String
-        
-        + Game(difficulty)
-        + action(): void
-        + paint(g): void
-    }
-
-    Main --> DifficultySelection : uses
-    Main --> Game : creates
-    Game --> SoundManager : uses
-    Game --> LeaderboardUI : creates
-    SoundManager --> MusicThread : uses
-    LeaderboardUI --> Leaderboard : uses
-}
-
-package edu.hitsz.dao {
+package "edu.hitsz.dao" as pkg_dao {
     interface ScoreDAO {
         + {abstract} save(record): boolean
         + {abstract} loadAll(): List<ScoreRecord>
@@ -328,7 +248,7 @@ package edu.hitsz.dao {
         + getDifficulty(): String
     }
 
-    class FileScoreDAO implements ScoreDAO {
+    class FileScoreDAO {
         - FILE_PATH: String
         - FILE_PREFIX: String
         - FILE_SUFFIX: String
@@ -353,10 +273,137 @@ package edu.hitsz.dao {
         + getTopRecords(top): List<ScoreRecord>
     }
 
-    ScoreDAO <|-- FileScoreDAO
+    ScoreDAO <|.. FileScoreDAO
     Leaderboard --> ScoreDAO : uses
     FileScoreDAO --> ScoreRecord : creates
     Leaderboard --> ScoreRecord : uses
 }
+
+package "edu.hitsz.application" as pkg_app {
+    class MusicThread extends Thread {
+        - filename: String
+        - audioFormat: AudioFormat
+        - samples: byte[]
+        - loop: boolean
+        - shouldStop: boolean
+
+        + MusicThread(filename: String)
+        + setLoop(loop: boolean): void
+        + stopMusic(): void
+        + reverseMusic(): void
+        + getSamples(stream: AudioInputStream): byte[]
+        + play(source: InputStream): void
+        + run(): void
+    }
+
+    class SoundManager {
+        - {static} instance: SoundManager
+        - currentMusicThread: MusicThread
+        - bossMusicThread: MusicThread
+
+        - SoundManager(): private
+        + {static} getInstance(): SoundManager
+        + playBGM(): void
+        + playBossBGM(): void
+        + stopBGM(): void
+        + playSound(fileName): void
+        + playBulletHit(): void
+        + playBombExplosion(): void
+        + playGetSupply(): void
+        + playGameOver(): void
+    }
+
+    class DifficultySelection {
+        - mainPanel: JPanel
+        - easyButton: JButton
+        - normalButton: JButton
+        - hardButton: JButton
+        - difficultyListener: DifficultyListener
+
+        + DifficultySelection()
+        + setDifficultyListener(listener): void
+        + getMainPanel(): JPanel
+        + {static} getBackgroundImage(difficulty): String
+    }
+
+    interface DifficultyListener {
+        + onDifficultySelected(difficulty): void
+    }
+    DifficultySelection +-- DifficultyListener : <<nested>>
+
+    class LeaderboardUI {
+        - mainPanel: JPanel
+        - leaderboardTable: JTable
+        - tableModel: DefaultTableModel
+        - currentScore: int
+        - difficulty: String
+
+        + LeaderboardUI(score, difficulty)
+        + getMainPanel(): JPanel
+        - initUI(): void
+        - createStyledButton(text, color): JButton
+        - loadLeaderboard(): void
+        - saveScore(): void
+        - deleteSelectedRecord(): void
+        - getDifficultyName(difficulty): String
+    }
+
+    class Main {
+        + {static} WINDOW_WIDTH: int
+        + {static} WINDOW_HEIGHT: int
+        + {static} cardLayout: CardLayout
+        + {static} cardPanel: JPanel
+
+        + {static} main(args): void
+    }
+
+    abstract class Game extends JPanel {
+        - timer: Timer
+        - heroAircraft: HeroAircraft
+        - enemyAircrafts: List<AbstractAircraft>
+        - heroBullets: List<BaseBullet>
+        - enemyBullets: List<BaseBullet>
+        - props: List<AbstractProp>
+        - difficulty: String
+
+        + Game(difficulty)
+        + action(): void
+        + paint(g): void
+    }
+
+    together {
+        class EasyGame extends Game {
+            + EasyGame()
+        }
+
+        class NormalGame extends Game {
+            + NormalGame()
+        }
+
+        class HardGame extends Game {
+            + HardGame()
+        }
+    }
+
+    Main --> DifficultySelection : uses
+    Main ..> Game : creates
+    Game --> SoundManager : uses
+    Game --> LeaderboardUI : creates
+    SoundManager --> MusicThread : uses
+}
+
+' 强制主要 package 同一横行展开（显著降低总高度）
+pkg_basic -[hidden]right- pkg_bullet
+pkg_bullet -[hidden]right- pkg_prop
+pkg_prop -[hidden]right- pkg_aircraft
+pkg_aircraft -[hidden]right- pkg_observer
+pkg_observer -[hidden]right- pkg_dao
+pkg_dao -[hidden]right- pkg_app
+
+' 跨包关系
+AbstractEnemyAircraft ..|> Observer
+EnemyBullet ..|> Observer
+Game ..> Leaderboard : creates
+LeaderboardUI ..> Leaderboard : uses
 
 @enduml
